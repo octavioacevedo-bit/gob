@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avance de proyectos SGR – Antioquia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#17252e;--muted:#5d6b73;--paper:#f5f6f4;--card:#fff;--line:#dde1e0;--blue:#2c5e7a;--road:#f2b705;--done:#2f6b5b;--wait:#8a9297}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:1200px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 22px}
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:none;padding:8px 14px;font:inherit;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;color:var(--ink)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.resumen{display:flex;flex-wrap:wrap;gap:8px 32px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:22px}
+.resumen div{min-width:150px}.resumen b{display:block;font-size:1.35rem;font-weight:600}.resumen span{color:var(--muted);font-size:.85rem}
+.grafica{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px;margin-bottom:24px}
+.grafica h2{font-size:1.05rem;margin:0}.grafica p{margin:2px 0 12px;color:var(--muted);font-size:.85rem}
+.chartbox{position:relative;height:320px}
+.tabla-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th{text-align:left;font-weight:600;font-size:.82rem;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;white-space:nowrap}
+.nom{max-width:380px}.nom small{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:#e8ebea;color:var(--ink);white-space:nowrap}
+.pill.done{background:#dcebe6;color:var(--done)}.pill.run{background:#dde9f0;color:var(--blue)}.pill.off{background:#f3dede;color:#8c2f2f}
+.barra{position:relative;height:8px;background:#e8ebea;border-radius:4px;margin-top:6px;min-width:140px}
+.barra i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:4px}
+.barra u{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--road);border-radius:2px}
+.d{font-size:.8rem;color:var(--muted)}.pos{color:var(--done)}
+.msg{padding:40px;text-align:center;color:var(--muted)}
+.pie{margin-top:14px;color:var(--muted);font-size:.82rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Avance de proyectos SGR – Antioquia</h1>
+  <p class="sub" id="corte">Cargando datos…</p>
+  <div class="filtros">
+    <div class="seg" id="anios" role="group" aria-label="Año de aprobación"></div>
+    <select id="fEstado" aria-label="Estado"></select>
+    <select id="fMun" aria-label="Municipio"></select>
+  </div>
+  <div class="resumen" id="resumen"></div>
+  <section class="grafica">
+    <h2>Avance físico mes a mes</h2>
+    <p>Promedio simple de los proyectos con dato en cada corte. La línea punteada es el promedio de lo que reportan los municipios.</p>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+  </section>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Año</th><th>Municipio</th><th>Proyecto</th><th>Estado</th><th class="n">Valor total</th><th class="n">Aporte Gobernación</th><th>Avance físico</th><th class="n">Reporta el municipio</th></tr></thead>
+    <tbody id="filas"></tbody>
+  </table></div>
+  <p class="pie">La marca amarilla en la barra indica lo que reporta el municipio. El avance físico es el del último corte con dato.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ── Configuración: lo único que podrías querer cambiar ──────────────
+const CONFIG = {
+  archivo: 'datos.xlsx',   // nombre del Excel subido al mismo repositorio
+  anioBase: 2026,          // año de los cortes cuando el encabezado dice solo "16 de julio"
+  cerradoComo100: true     // si una celda de avance dice "CERRADO", contarla como 100
+};
+
+const MESES = {enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,setiembre:8,octubre:9,noviembre:10,diciembre:11};
+const MES3 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+const num = v => {
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  if (typeof v === 'string') { const t = v.trim().replace('%',''); if (/^-?\d+([.,]\d+)?$/.test(t)) return parseFloat(t.replace(',','.')); }
+  return null;
+};
+const avance = v => { const n = num(v); if (n !== null) return n; return CONFIG.cerradoComo100 && norm(v) === 'cerrado' ? 100 : null; };
+
+function parseCorte(label, previo) {
+  let d, m, y;
+  if (label instanceof Date) { y = label.getFullYear(); m = label.getMonth(); d = label.getDate(); }
+  else if (typeof label === 'number') { const p = XLSX.SSF.parse_date_code(label); y = p.y; m = p.m - 1; d = p.d; }
+  else {
+    const r = norm(label).match(/(\d{1,2})\s*(?:de)?\s*([a-z]+)(?:\s*(?:de)?\s*(\d{4}))?/);
+    if (!r) return { label: String(label ?? '').trim() || 'Corte', y: previo?.y, m: previo?.m };
+    d = +r[1]; m = MESES[r[2]] ?? MES3.indexOf(r[2].slice(0,3));
+    y = r[3] ? +r[3] : (previo ? previo.y + (m < previo.m ? 1 : 0) : CONFIG.anioBase);
+  }
+  return { label: `${d} ${MES3[m]} ${String(y).slice(2)}`, y, m };
+}
+
+// Convierte la hoja (matriz de filas) en proyectos + cortes mensuales.
+// Detecta las columnas por el texto del encabezado, así que un mes nuevo se reconoce solo.
+function construir(aoa) {
+  const hi = aoa.findIndex(r => r && r.map(norm).includes('ano') && r.map(norm).includes('municipio'));
+  if (hi < 0) throw new Error('No encontré la fila de encabezados (Año, Municipio…).');
+  const h = aoa[hi].map(norm), etiquetas = aoa[hi - 1] || [];
+  const c = { anio: h.indexOf('ano'), mun: h.indexOf('municipio'), bpin: h.indexOf('bpin'), nom: h.indexOf('nombre'),
+    val: h.findIndex(x => x.startsWith('valor')), apo: h.findIndex(x => x.startsWith('aporte')), est: h.indexOf('estado'),
+    rep: h.findIndex(x => x.includes('municipio') && x.includes('fisica')) };
+  const cortes = []; let previo = null;
+  h.forEach((t, i) => {
+    if (t.includes('fisica') && !t.includes('municipio')) {
+      previo = parseCorte(etiquetas[i] ?? etiquetas[i + 1], previo);
+      cortes.push({ ...previo, col: i });
+    }
+  });
+  const proyectos = [];
+  for (let r = hi + 1; r < aoa.length; r++) {
+    const f = aoa[r]; if (!f) continue;
+    const anio = num(f[c.anio]); if (anio === null) continue;   // salta la fila de totales y las vacías
+    proyectos.push({ anio, mun: String(f[c.mun] ?? '').trim(), bpin: f[c.bpin], nombre: String(f[c.nom] ?? '').trim(),
+      valor: num(f[c.val]) || 0, aporte: num(f[c.apo]) || 0, estado: String(f[c.est] ?? '').trim().toUpperCase(),
+      fis: cortes.map(k => avance(f[k.col])), rep: c.rep >= 0 ? num(f[c.rep]) : null });
+  }
+  return { cortes, proyectos };
+}
+
+// ── Interfaz ────────────────────────────────────────────────────────
+let D, chart, anioSel = 'todos';
+const $ = id => document.getElementById(id);
+const fmtP = n => n == null ? '—' : new Intl.NumberFormat('es-CO', {maximumFractionDigits:1}).format(n) + '%';
+const fmtM = n => '$ ' + new Intl.NumberFormat('es-CO', {maximumFractionDigits:0}).format(n / 1e6) + ' M';
+const prom = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((s,x) => s + x, 0) / v.length : null; };
+const ultimo = p => { for (let i = p.fis.length - 1; i >= 0; i--) if (p.fis[i] != null) return { v: p.fis[i], i }; return null; };
+const claseEstado = e => /CERRADO|TERMINADO/.test(e) ? 'done' : /EJECUCI/.test(e) ? 'run' : /DESAPROBADO/.test(e) ? 'off' : '';
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+function filtrados() {
+  return D.proyectos.filter(p => (anioSel === 'todos' || p.anio === +anioSel)
+    && ($('fEstado').value === '' || p.estado === $('fEstado').value)
+    && ($('fMun').value === '' || p.mun === $('fMun').value));
+}
+
+function pintar() {
+  const f = filtrados(), n = D.cortes.length;
+  const serie = D.cortes.map((_, i) => prom(f.map(p => p.fis[i])));
+  const actual = serie[n - 1], antes = n > 1 ? serie[n - 2] : null;
+  const rep = prom(f.map(p => p.rep));
+  $('resumen').innerHTML = `
+    <div><b>${f.length}</b><span>proyectos</span></div>
+    <div><b>${fmtM(f.reduce((s,p) => s + p.valor, 0))}</b><span>valor total</span></div>
+    <div><b>${fmtM(f.reduce((s,p) => s + p.aporte, 0))}</b><span>aporte Gobernación SGR</span></div>
+    <div><b>${fmtP(actual)}</b><span>avance físico promedio${actual != null && antes != null ? ` (${actual - antes >= 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(actual - antes)} pts vs. corte anterior)` : ''}</span></div>
+    <div><b>${fmtP(rep)}</b><span>promedio reportado por municipios</span></div>`;
+
+  const datasets = [{ label: 'Avance físico (promedio)', data: serie, borderColor: '#2c5e7a', backgroundColor: '#2c5e7a', tension: .25, pointRadius: 4, spanGaps: true }];
+  if (rep != null) datasets.push({ label: 'Reportado por municipios (promedio)', data: serie.map(() => rep), borderColor: '#f2b705', borderDash: [6,5], pointRadius: 0, borderWidth: 2 });
+  const cuentas = D.cortes.map((_, i) => f.filter(p => p.fis[i] != null).length);
+  if (chart) chart.destroy();
+  chart = new Chart($('chart'), { type: 'line', data: { labels: D.cortes.map(k => k.label), datasets },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+      plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtP(c.parsed.y)}`, afterLabel: c => c.datasetIndex === 0 ? `${cuentas[c.dataIndex]} proyectos con dato` : '' } } } } });
+
+  $('filas').innerHTML = f.length ? f.map(p => {
+    const u = ultimo(p), prev = u ? p.fis.slice(0, u.i).filter(x => x != null).pop() : null;
+    const dif = u && p.rep != null ? p.rep - u.v : null;
+    return `<tr><td>${p.anio}</td><td>${esc(p.mun)}</td>
+      <td class="nom">${esc(p.nombre)}<br><small>BPIN ${esc(p.bpin ?? '')}</small></td>
+      <td><span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span></td>
+      <td class="n">${fmtM(p.valor)}</td><td class="n">${fmtM(p.aporte)}</td>
+      <td>${u ? `<b>${fmtP(u.v)}</b> <span class="d">${prev != null ? `(${u.v - prev >= 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(u.v - prev)} pts)` : ''}${u.i < D.cortes.length - 1 ? ` · corte ${D.cortes[u.i].label}` : ''}</span>
+        <div class="barra"><i style="width:${Math.min(100, Math.max(0, u.v))}%"></i>${p.rep != null ? `<u style="left:calc(${Math.min(100, Math.max(0, p.rep))}% - 1px)"></u>` : ''}</div>` : '<span class="d">Sin dato</span>'}</td>
+      <td class="n">${p.rep != null ? `<b>${fmtP(p.rep)}</b>` : '<span class="d">—</span>'}${dif != null && Math.abs(dif) >= 0.5 ? `<br><span class="d">${dif > 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(dif)} pts vs. reporte</span>` : ''}</td></tr>`;
+  }).join('') : '<tr><td colspan="8" class="msg">Ningún proyecto coincide con los filtros.</td></tr>';
+}
+
+function iniciarFiltros() {
+  const anios = [...new Set(D.proyectos.map(p => p.anio))].sort();
+  $('anios').innerHTML = ['todos', ...anios].map(a => `<button aria-pressed="${a === anioSel}" data-a="${a}">${a === 'todos' ? 'Todos los años' : a}</button>`).join('');
+  $('anios').onclick = e => { const b = e.target.closest('button'); if (!b) return; anioSel = b.dataset.a;
+    $('anios').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); pintar(); };
+  const opciones = (id, todos, vals) => { $(id).innerHTML = `<option value="">${todos}</option>` + [...new Set(vals)].filter(Boolean).sort((a,b) => a.localeCompare(b,'es')).map(v => `<option>${esc(v)}</option>`).join(''); $(id).onchange = pintar; };
+  opciones('fEstado', 'Todos los estados', D.proyectos.map(p => p.estado));
+  opciones('fMun', 'Todos los municipios', D.proyectos.map(p => p.mun));
+}
+
+(async () => {
+  try {
+    const res = await fetch(CONFIG.archivo + '?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('No se encontró ' + CONFIG.archivo + ' (error ' + res.status + ').');
+    const wb = XLSX.read(await res.arrayBuffer(), { type: 'array', cellDates: true });
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+    D = construir(aoa);
+    const ult = D.cortes[D.cortes.length - 1];
+    $('corte').textContent = ult ? `Último corte: ${ult.label} · ${D.proyectos.length} proyectos` : `${D.proyectos.length} proyectos`;
+    iniciarFiltros(); pintar();
+  } catch (e) {
+    $('corte').textContent = '';
+    $('resumen').innerHTML = `<div class="msg" style="width:100%">No se pudieron cargar los datos. ${esc(e.message)}<br>Si abriste este archivo haciendo doble clic, los navegadores lo bloquean: ábrelo desde el enlace de GitHub Pages.</div>`;
+  }
+})();
+</script>
+</body>
+</html>
