@@ -7,23 +7,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#17252e;--muted:#5d6b73;--paper:#f5f6f4;--card:#fff;--line:#dde1e0;--blue:#2c5e7a;--road:#f2b705;--done:#2f6b5b;--wait:#8a9297}
+:root{
+  --ink:#1c3527; --muted:#5f7768; --paper:#eef4ec; --card:#fbfdfa; --line:#d7e6d8;
+  --accent:#5b9b78; --accent-dark:#1d5c3d; --accent-soft:#d7ead9; --accent-pale:#eaf4e9;
+  --hero-bg:#1c3d2b; --hero-fg:#eaf4e9;
+  --up:#2f7a4f; --down:#a24b3a; --report:#8a8a3d
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums}
 main{max-width:1200px;margin:0 auto;padding:28px 20px 60px}
-h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
+h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em;color:var(--hero-bg)}
 .sub{color:var(--muted);margin:0 0 22px}
 .filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
 .seg button{border:0;background:none;padding:8px 14px;font:inherit;cursor:pointer;color:var(--muted)}
-.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.seg button[aria-pressed=true]{background:var(--accent-dark);color:#fff}
 select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;color:var(--ink)}
-button:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.resumen{display:flex;flex-wrap:wrap;gap:8px 32px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:22px}
-.resumen div{min-width:150px}.resumen b{display:block;font-size:1.35rem;font-weight:600}.resumen span{color:var(--muted);font-size:.85rem}
-.grafica{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px;margin-bottom:24px}
-.grafica h2{font-size:1.05rem;margin:0}.grafica p{margin:2px 0 12px;color:var(--muted);font-size:.85rem}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px}
+
+.resumen{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:12px;margin-bottom:24px}
+@media (max-width:820px){.resumen{grid-template-columns:1fr 1fr}}
+.hero{grid-row:span 2;background:var(--hero-bg);color:var(--hero-fg);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.hero .num{font-size:2.6rem;font-weight:700;line-height:1}
+.hero .lbl{color:#bcd6c4;font-size:.9rem}
+.hero .delta{display:inline-flex;align-items:center;gap:5px;margin-top:4px;padding:4px 10px;border-radius:99px;font-weight:600;font-size:.88rem;width:fit-content}
+.hero .delta.up{background:#2c5a3d;color:#c9f0d4}
+.hero .delta.down{background:#5a3a2f;color:#f0d6c9}
+.hero .delta.flat{background:#33503f;color:#d8e9de}
+.hero .nota{color:#a9c7b1;font-size:.78rem;margin-top:2px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font-size:1.3rem;font-weight:600;color:var(--accent-dark)}
+.stat span{color:var(--muted);font-size:.83rem}
+
+.graficas{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:24px}
+@media (max-width:900px){.graficas{grid-template-columns:1fr}}
+.grafica{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px}
+.grafica h2{font-size:1.05rem;margin:0;color:var(--hero-bg)}
+.grafica p{margin:2px 0 12px;color:var(--muted);font-size:.85rem}
 .chartbox{position:relative;height:320px}
+.chartbox.small{height:280px}
+
 .tabla-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
 table{border-collapse:collapse;width:100%;min-width:900px}
 th{text-align:left;font-weight:600;font-size:.82rem;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -31,12 +54,15 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 td.n,th.n{text-align:right;white-space:nowrap}
 .nom{max-width:380px}.nom small{color:var(--muted)}
-.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:#e8ebea;color:var(--ink);white-space:nowrap}
-.pill.done{background:#dcebe6;color:var(--done)}.pill.run{background:#dde9f0;color:var(--blue)}.pill.off{background:#f3dede;color:#8c2f2f}
-.barra{position:relative;height:8px;background:#e8ebea;border-radius:4px;margin-top:6px;min-width:140px}
-.barra i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:4px}
-.barra u{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--road);border-radius:2px}
-.d{font-size:.8rem;color:var(--muted)}.pos{color:var(--done)}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:var(--accent-pale);color:var(--ink);white-space:nowrap}
+.pill.done{background:#153826;color:#bfe0cc}
+.pill.run{background:var(--accent-soft);color:var(--accent-dark)}
+.pill.wait{background:#e7ecdf;color:#6b7a5f}
+.pill.off{background:#eaddd3;color:#8c4b34}
+.barra{position:relative;height:8px;background:#e4ede2;border-radius:4px;margin-top:6px;min-width:140px}
+.barra i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px}
+.barra u{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--report);border-radius:2px}
+.d{font-size:.8rem;color:var(--muted)}
 .msg{padding:40px;text-align:center;color:var(--muted)}
 .pie{margin-top:14px;color:var(--muted);font-size:.82rem}
 </style>
@@ -51,16 +77,23 @@ td.n,th.n{text-align:right;white-space:nowrap}
     <select id="fMun" aria-label="Municipio"></select>
   </div>
   <div class="resumen" id="resumen"></div>
-  <section class="grafica">
-    <h2>Avance físico mes a mes</h2>
-    <p>Promedio simple de los proyectos con dato en cada corte. La línea punteada es el promedio de lo que reportan los municipios.</p>
-    <div class="chartbox"><canvas id="chart"></canvas></div>
-  </section>
+  <div class="graficas">
+    <section class="grafica">
+      <h2>Avance físico mes a mes</h2>
+      <p id="notaLinea">Promedio de los proyectos en ejecución con dato en cada corte. La línea punteada es lo que reportan los municipios.</p>
+      <div class="chartbox"><canvas id="chart"></canvas></div>
+    </section>
+    <section class="grafica">
+      <h2>Proyectos por estado</h2>
+      <p>Cuenta de proyectos según el filtro actual.</p>
+      <div class="chartbox small"><canvas id="chartEstados"></canvas></div>
+    </section>
+  </div>
   <div class="tabla-wrap"><table>
     <thead><tr><th>Año</th><th>Municipio</th><th>Proyecto</th><th>Estado</th><th class="n">Valor total</th><th class="n">Aporte Gobernación</th><th>Avance físico</th><th class="n">Reporta el municipio</th></tr></thead>
     <tbody id="filas"></tbody>
   </table></div>
-  <p class="pie">La marca amarilla en la barra indica lo que reporta el municipio. El avance físico es el del último corte con dato.</p>
+  <p class="pie">La marca en la barra indica lo que reporta el municipio. El avance físico es el del último corte con dato.</p>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -68,14 +101,27 @@ td.n,th.n{text-align:right;white-space:nowrap}
 <script>
 // ── Configuración: lo único que podrías querer cambiar ──────────────
 const CONFIG = {
-  archivo: 'datos.xlsx',   // nombre del Excel subido al mismo repositorio
-  anioBase: 2026,          // año de los cortes cuando el encabezado dice solo "16 de julio"
-  cerradoComo100: true     // si una celda de avance dice "CERRADO", contarla como 100
+  archivo: 'datos.xlsx',            // nombre del Excel subido al mismo repositorio
+  anioBase: 2026,                   // año de los cortes cuando el encabezado dice solo "16 de julio"
+  cerradoComo100: true,             // si una celda de avance dice "CERRADO", contarla como 100
+  estadoParaPromedio: 'contratado en ejecucion'  // estado que entra al promedio de avance por defecto (sin acentos, minúsculas)
 };
+
+const ESTADO_COLOR = {
+  'contratado en ejecucion': '#5b9b78',
+  'terminado': '#1d5c3d',
+  'cerrado': '#123f2a',
+  'sin contratar': '#a9c9ad',
+  'contratado sin acta de inicio': '#8fbf9f',
+  'para cierre': '#7c8a4a',
+  'desaprobado': '#b1583f',
+  'no info': '#93a396'
+};
+const colorEstado = e => ESTADO_COLOR[norm(e)] || '#9db3a2';
 
 const MESES = {enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,setiembre:8,octubre:9,noviembre:10,diciembre:11};
 const MES3 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+function norm(s){ return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
 const num = v => {
   if (typeof v === 'number') return isFinite(v) ? v : null;
   if (typeof v === 'string') { const t = v.trim().replace('%',''); if (/^-?\d+([.,]\d+)?$/.test(t)) return parseFloat(t.replace(',','.')); }
@@ -124,13 +170,14 @@ function construir(aoa) {
 }
 
 // ── Interfaz ────────────────────────────────────────────────────────
-let D, chart, anioSel = 'todos';
+let D, chart, chartEstados, anioSel = 'todos';
 const $ = id => document.getElementById(id);
 const fmtP = n => n == null ? '—' : new Intl.NumberFormat('es-CO', {maximumFractionDigits:1}).format(n) + '%';
+const fmtPtsRaw = n => new Intl.NumberFormat('es-CO', {maximumFractionDigits:1, signDisplay:'exceptZero'}).format(n);
 const fmtM = n => '$ ' + new Intl.NumberFormat('es-CO', {maximumFractionDigits:0}).format(n / 1e6) + ' M';
 const prom = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((s,x) => s + x, 0) / v.length : null; };
 const ultimo = p => { for (let i = p.fis.length - 1; i >= 0; i--) if (p.fis[i] != null) return { v: p.fis[i], i }; return null; };
-const claseEstado = e => /CERRADO|TERMINADO/.test(e) ? 'done' : /EJECUCI/.test(e) ? 'run' : /DESAPROBADO/.test(e) ? 'off' : '';
+const claseEstado = e => /CERRADO|TERMINADO/.test(e) ? 'done' : /EJECUCI/.test(e) ? 'run' : /DESAPROBADO/.test(e) ? 'off' : 'wait';
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 
 function filtrados() {
@@ -141,34 +188,60 @@ function filtrados() {
 
 function pintar() {
   const f = filtrados(), n = D.cortes.length;
-  const serie = D.cortes.map((_, i) => prom(f.map(p => p.fis[i])));
-  const actual = serie[n - 1], antes = n > 1 ? serie[n - 2] : null;
-  const rep = prom(f.map(p => p.rep));
-  $('resumen').innerHTML = `
-    <div><b>${f.length}</b><span>proyectos</span></div>
-    <div><b>${fmtM(f.reduce((s,p) => s + p.valor, 0))}</b><span>valor total</span></div>
-    <div><b>${fmtM(f.reduce((s,p) => s + p.aporte, 0))}</b><span>aporte Gobernación SGR</span></div>
-    <div><b>${fmtP(actual)}</b><span>avance físico promedio${actual != null && antes != null ? ` (${actual - antes >= 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(actual - antes)} pts vs. corte anterior)` : ''}</span></div>
-    <div><b>${fmtP(rep)}</b><span>promedio reportado por municipios</span></div>`;
+  const estadoFiltrado = $('fEstado').value !== '';
+  // El promedio de avance solo toma los proyectos "Contratado en ejecución",
+  // salvo que el usuario ya haya filtrado por un estado específico.
+  const paraProm = estadoFiltrado ? f : f.filter(p => norm(p.estado) === CONFIG.estadoParaPromedio);
+  $('notaLinea').textContent = estadoFiltrado
+    ? `Promedio de los proyectos con estado "${f[0]?.estado ?? $('fEstado').value}" y dato en cada corte. La línea punteada es lo que reportan los municipios.`
+    : 'Promedio de los proyectos en ejecución con dato en cada corte. La línea punteada es lo que reportan los municipios.';
 
-  const datasets = [{ label: 'Avance físico (promedio)', data: serie, borderColor: '#2c5e7a', backgroundColor: '#2c5e7a', tension: .25, pointRadius: 4, spanGaps: true }];
-  if (rep != null) datasets.push({ label: 'Reportado por municipios (promedio)', data: serie.map(() => rep), borderColor: '#f2b705', borderDash: [6,5], pointRadius: 0, borderWidth: 2 });
-  const cuentas = D.cortes.map((_, i) => f.filter(p => p.fis[i] != null).length);
+  const serie = D.cortes.map((_, i) => prom(paraProm.map(p => p.fis[i])));
+  const actual = serie[n - 1], antes = n > 1 ? serie[n - 2] : null;
+  const rep = prom(paraProm.map(p => p.rep));
+  const dif = (actual != null && antes != null) ? actual - antes : null;
+  const claseDelta = dif == null ? '' : dif > 0.05 ? 'up' : dif < -0.05 ? 'down' : 'flat';
+  const flecha = dif == null ? '' : dif > 0.05 ? '↑' : dif < -0.05 ? '↓' : '→';
+
+  $('resumen').innerHTML = `
+    <div class="hero">
+      <span class="lbl">Avance físico promedio${estadoFiltrado ? '' : ' · en ejecución'}</span>
+      <span class="num">${fmtP(actual)}</span>
+      ${dif != null ? `<span class="delta ${claseDelta}">${flecha} ${fmtPtsRaw(dif)} pts vs. corte anterior</span>` : ''}
+      <span class="nota">${paraProm.length} proyecto${paraProm.length === 1 ? '' : 's'} medido${paraProm.length === 1 ? '' : 's'}${rep != null ? ` · municipios reportan ${fmtP(rep)}` : ''}</span>
+    </div>
+    <div class="stat"><b>${f.length}</b><span>proyectos filtrados</span></div>
+    <div class="stat"><b>${fmtM(f.reduce((s,p) => s + p.valor, 0))}</b><span>valor total</span></div>
+    <div class="stat"><b>${fmtM(f.reduce((s,p) => s + p.aporte, 0))}</b><span>aporte Gobernación SGR</span></div>`;
+
+  const datasets = [{ label: 'Avance físico (promedio)', data: serie, borderColor: '#1d5c3d', backgroundColor: '#1d5c3d', tension: .25, pointRadius: 4, spanGaps: true }];
+  if (rep != null) datasets.push({ label: 'Reportado por municipios (promedio)', data: serie.map(() => rep), borderColor: '#8a8a3d', borderDash: [6,5], pointRadius: 0, borderWidth: 2 });
+  const cuentas = D.cortes.map((_, i) => paraProm.filter(p => p.fis[i] != null).length);
   if (chart) chart.destroy();
   chart = new Chart($('chart'), { type: 'line', data: { labels: D.cortes.map(k => k.label), datasets },
     options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
       plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtP(c.parsed.y)}`, afterLabel: c => c.datasetIndex === 0 ? `${cuentas[c.dataIndex]} proyectos con dato` : '' } } } } });
 
+  const porEstado = {};
+  f.forEach(p => { porEstado[p.estado] = (porEstado[p.estado] || 0) + 1; });
+  const estados = Object.keys(porEstado).sort((a,b) => porEstado[b] - porEstado[a]);
+  if (chartEstados) chartEstados.destroy();
+  chartEstados = new Chart($('chartEstados'), { type: 'bar',
+    data: { labels: estados, datasets: [{ data: estados.map(e => porEstado[e]), backgroundColor: estados.map(colorEstado), borderRadius: 5 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x} proyecto${c.parsed.x === 1 ? '' : 's'}` } } } } });
+
   $('filas').innerHTML = f.length ? f.map(p => {
     const u = ultimo(p), prev = u ? p.fis.slice(0, u.i).filter(x => x != null).pop() : null;
-    const dif = u && p.rep != null ? p.rep - u.v : null;
+    const difRep = u && p.rep != null ? p.rep - u.v : null;
     return `<tr><td>${p.anio}</td><td>${esc(p.mun)}</td>
       <td class="nom">${esc(p.nombre)}<br><small>BPIN ${esc(p.bpin ?? '')}</small></td>
       <td><span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span></td>
       <td class="n">${fmtM(p.valor)}</td><td class="n">${fmtM(p.aporte)}</td>
-      <td>${u ? `<b>${fmtP(u.v)}</b> <span class="d">${prev != null ? `(${u.v - prev >= 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(u.v - prev)} pts)` : ''}${u.i < D.cortes.length - 1 ? ` · corte ${D.cortes[u.i].label}` : ''}</span>
+      <td>${u ? `<b>${fmtP(u.v)}</b> <span class="d">${prev != null ? `(${fmtPtsRaw(u.v - prev)} pts)` : ''}${u.i < D.cortes.length - 1 ? ` · corte ${D.cortes[u.i].label}` : ''}</span>
         <div class="barra"><i style="width:${Math.min(100, Math.max(0, u.v))}%"></i>${p.rep != null ? `<u style="left:calc(${Math.min(100, Math.max(0, p.rep))}% - 1px)"></u>` : ''}</div>` : '<span class="d">Sin dato</span>'}</td>
-      <td class="n">${p.rep != null ? `<b>${fmtP(p.rep)}</b>` : '<span class="d">—</span>'}${dif != null && Math.abs(dif) >= 0.5 ? `<br><span class="d">${dif > 0 ? '+' : ''}${new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(dif)} pts vs. reporte</span>` : ''}</td></tr>`;
+      <td class="n">${p.rep != null ? `<b>${fmtP(p.rep)}</b>` : '<span class="d">—</span>'}${difRep != null && Math.abs(difRep) >= 0.5 ? `<br><span class="d">${fmtPtsRaw(difRep)} pts vs. reporte</span>` : ''}</td></tr>`;
   }).join('') : '<tr><td colspan="8" class="msg">Ningún proyecto coincide con los filtros.</td></tr>';
 }
 
