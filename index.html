@@ -10,118 +10,168 @@
 :root{
   --ink:#1c3527; --muted:#5f7768; --paper:#eef4ec; --card:#fbfdfa; --line:#d7e6d8;
   --accent:#5b9b78; --accent-dark:#1d5c3d; --accent-soft:#d7ead9; --accent-pale:#eaf4e9;
-  --hero-bg:#1c3d2b; --hero-fg:#eaf4e9;
-  --up:#2f7a4f; --down:#a24b3a; --report:#8a8a3d
+  --map-empty:#e3ebe2; --map-fill:#9fc7ac; --map-hover:#5b9b78; --map-sel:#123f2a
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums}
-main{max-width:1200px;margin:0 auto;padding:28px 20px 60px}
-h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em;color:var(--hero-bg)}
+main{max-width:1280px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em;color:var(--accent-dark)}
 .sub{color:var(--muted);margin:0 0 22px}
-.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
 .seg button{border:0;background:none;padding:8px 14px;font:inherit;cursor:pointer;color:var(--muted)}
 .seg button[aria-pressed=true]{background:var(--accent-dark);color:#fff}
-select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;color:var(--ink)}
-button:focus-visible,select:focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px}
+select,input[type=search],.chip{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font:inherit;color:var(--ink)}
+input[type=search]{min-width:220px}
+.chip{cursor:pointer;color:var(--accent-dark)}
+.chip[aria-pressed=true]{background:var(--accent-dark);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px}
 
-.resumen{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:12px;margin-bottom:24px}
-@media (max-width:820px){.resumen{grid-template-columns:1fr 1fr}}
-.hero{grid-row:span 2;background:var(--hero-bg);color:var(--hero-fg);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;justify-content:center;gap:8px}
-.hero .num{font-size:2.6rem;font-weight:700;line-height:1}
-.hero .lbl{color:#bcd6c4;font-size:.9rem}
-.hero .delta{display:inline-flex;align-items:center;gap:5px;margin-top:4px;padding:4px 10px;border-radius:99px;font-weight:600;font-size:.88rem;width:fit-content}
-.hero .delta.up{background:#2c5a3d;color:#c9f0d4}
-.hero .delta.down{background:#5a3a2f;color:#f0d6c9}
-.hero .delta.flat{background:#33503f;color:#d8e9de}
-.hero .nota{color:#a9c7b1;font-size:.78rem;margin-top:2px}
+.migas{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0 0 12px;font-size:.9rem;color:var(--muted)}
+.migas button{border:0;background:none;padding:2px 4px;font:inherit;color:var(--accent-dark);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.migas b{color:var(--ink)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+@media (max-width:700px){.stats{grid-template-columns:1fr}}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.stat b{display:block;font-size:1.3rem;font-weight:600;color:var(--accent-dark)}
+.stat b{display:block;font-size:1.4rem;font-weight:600;color:var(--accent-dark)}
 .stat span{color:var(--muted);font-size:.83rem}
 
-.graficas{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:24px}
-@media (max-width:900px){.graficas{grid-template-columns:1fr}}
-.grafica{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px}
-.grafica h2{font-size:1.05rem;margin:0;color:var(--hero-bg)}
-.grafica p{margin:2px 0 12px;color:var(--muted);font-size:.85rem}
-.chartbox{position:relative;height:320px}
-.chartbox.small{height:280px}
+.layout{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+@media (max-width:960px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.panel h2{font-size:1.05rem;margin:0 0 2px;color:var(--accent-dark)}
+.panel h3{font-size:.92rem;margin:16px 0 6px;color:var(--accent-dark)}
+.panel p.hint{margin:2px 0 10px;color:var(--muted);font-size:.83rem}
 
-.tabla-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;min-width:900px}
-th{text-align:left;font-weight:600;font-size:.82rem;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:last-child td{border-bottom:0}
-td.n,th.n{text-align:right;white-space:nowrap}
-.nom{max-width:380px}.nom small{color:var(--muted)}
-.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:var(--accent-pale);color:var(--ink);white-space:nowrap}
+.mapaBox{position:relative;overflow:hidden}
+#mapaSvg{width:100%;height:auto;display:block}
+#zoomG{transform-origin:0 0;transition:transform .55s cubic-bezier(.3,.7,.2,1)}
+path.muni{fill:var(--map-empty);stroke:#fff;stroke-width:.7px;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .12s}
+path.muni.tiene{fill:var(--map-fill)}
+path.muni.hov{fill:var(--map-hover)}
+path.muni.dim{fill:#eef2ed}
+path.muni.dim.tiene{fill:#d3e2d4}
+path.muni.dim.hov{fill:#9fc7ac}
+#mapaSvg.nivel-sub path.muni.activo:hover{fill:var(--map-hover)}
+path.muni.sel,#mapaSvg.nivel-sub path.muni.sel:hover{fill:var(--map-sel)}
+path.muni.nomap{cursor:default}
+path.subline{fill:none;stroke:#fff;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+text.lbl{pointer-events:none;fill:#123f2a;font-weight:600;text-anchor:middle;paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-linejoin:round;opacity:0;transition:opacity .3s}
+text.lbl.show{opacity:1}
+.tooltip{position:absolute;pointer-events:none;background:#123f2a;color:#eaf4e9;padding:8px 11px;border-radius:8px;font-size:.82rem;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transform:translate(-50%,-115%);transition:opacity .08s;white-space:nowrap;z-index:5}
+.tooltip b{display:block;font-size:.9rem;margin-bottom:1px}
+.sinmapa{margin-top:10px;color:var(--muted);font-size:.78rem}
+
+.chartbox{position:relative;height:250px}
+.volver{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--accent-dark);font:inherit;margin-bottom:10px}
+.detalle-kpis{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 14px;color:var(--muted);font-size:.85rem}
+.detalle-kpis b{color:var(--accent-dark);font-size:1.05rem}
+
+.filas{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto}
+.fila{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:baseline;width:100%;text-align:left;border:1px solid var(--line);background:var(--accent-pale);border-radius:8px;padding:8px 12px;font:inherit;color:var(--ink);cursor:pointer}
+.fila:hover{background:var(--accent-soft)}
+.fila small{color:var(--muted)}
+.fila b{font-weight:600}
+
+.proy-list{display:flex;flex-direction:column;gap:12px;max-height:680px;overflow-y:auto;padding-right:4px}
+.proy-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--accent-pale)}
+.proy-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.proy-nombre{font-weight:600;font-size:.95rem}
+.proy-nombre small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;margin-top:3px}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.76rem;white-space:nowrap;background:var(--accent-pale);color:var(--ink)}
 .pill.done{background:#153826;color:#bfe0cc}
 .pill.run{background:var(--accent-soft);color:var(--accent-dark)}
 .pill.wait{background:#e7ecdf;color:#6b7a5f}
 .pill.off{background:#eaddd3;color:#8c4b34}
-.barra{position:relative;height:8px;background:#e4ede2;border-radius:4px;margin-top:6px;min-width:140px}
-.barra i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px}
-.barra u{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--report);border-radius:2px}
-.d{font-size:.8rem;color:var(--muted)}
-.msg{padding:40px;text-align:center;color:var(--muted)}
-.pie{margin-top:14px;color:var(--muted);font-size:.82rem}
+.proy-cifras{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;font-size:.82rem;color:var(--muted)}
+.proy-cifras b{color:var(--ink)}
+.proy-mini{height:165px;position:relative;margin-top:4px}
+.proy-pie{margin-top:6px;font-size:.8rem;color:var(--muted)}
+.msg{padding:30px 10px;text-align:center;color:var(--muted)}
 </style>
 </head>
 <body>
 <main>
   <h1>Avance de proyectos SGR – Antioquia</h1>
   <p class="sub" id="corte">Cargando datos…</p>
+
   <div class="filtros">
     <div class="seg" id="anios" role="group" aria-label="Año de aprobación"></div>
     <select id="fEstado" aria-label="Estado"></select>
-    <select id="fMun" aria-label="Municipio"></select>
+    <input type="search" id="buscaZona" list="listaZonas" placeholder="Buscar subregión o municipio…" aria-label="Buscar subregión o municipio">
+    <datalist id="listaZonas"></datalist>
+    <button class="chip" id="btnDepto" aria-pressed="false" hidden></button>
   </div>
-  <div class="resumen" id="resumen"></div>
-  <div class="graficas">
-    <section class="grafica">
-      <h2>Avance físico mes a mes</h2>
-      <p id="notaLinea">Promedio de los proyectos en ejecución con dato en cada corte. La línea punteada es lo que reportan los municipios.</p>
-      <div class="chartbox"><canvas id="chart"></canvas></div>
+
+  <nav class="migas" id="migas" aria-label="Ubicación"></nav>
+  <div class="stats" id="stats"></div>
+
+  <div class="layout">
+    <section class="panel">
+      <h2 id="tituloMapa">Subregiones</h2>
+      <p class="hint" id="hintMapa"></p>
+      <div class="mapaBox">
+        <svg id="mapaSvg" viewBox="0 0 700 820" aria-label="Mapa de Antioquia por subregión y municipio"><g id="zoomG"></g></svg>
+        <div class="tooltip" id="tooltip"></div>
+      </div>
+      <p class="sinmapa" id="sinMapa"></p>
     </section>
-    <section class="grafica">
-      <h2>Proyectos por estado</h2>
-      <p>Cuenta de proyectos según el filtro actual.</p>
-      <div class="chartbox small"><canvas id="chartEstados"></canvas></div>
-    </section>
+    <section class="panel" id="panelDerecho"></section>
   </div>
-  <div class="tabla-wrap"><table>
-    <thead><tr><th>Año</th><th>Municipio</th><th>Proyecto</th><th>Estado</th><th class="n">Valor total</th><th class="n">Aporte Gobernación</th><th>Avance físico</th><th class="n">Reporta el municipio</th></tr></thead>
-    <tbody id="filas"></tbody>
-  </table></div>
-  <p class="pie">La marca en la barra indica lo que reporta el municipio. El avance físico es el del último corte con dato.</p>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
-// ── Configuración: lo único que podrías querer cambiar ──────────────
+// ── Configuración ─────────────────────────────────────────────────
 const CONFIG = {
-  archivo: 'datos.xlsx',            // nombre del Excel subido al mismo repositorio
-  anioBase: 2026,                   // año de los cortes cuando el encabezado dice solo "16 de julio"
-  cerradoComo100: true,             // si una celda de avance dice "CERRADO", contarla como 100
-  estadoParaPromedio: 'contratado en ejecucion'  // estado que entra al promedio de avance por defecto (sin acentos, minúsculas)
+  archivo: 'datos.xlsx',
+  anioBase: 2026,
+  cerradoComo100: true,
+  geoLocal: 'antioquia.json',   // opcional: versión liviana del mapa en el mismo repositorio
+  geoRemoto: 'https://raw.githubusercontent.com/santiblanko/colombia.geojson/master/mpio.json',
+  geoCampoNombre: 'NOMBRE_MPI',
+  geoCampoDepto: 'NOMBRE_DPT',
+  geoValorDepto: 'ANTIOQUIA'
 };
+
+// ── Subregiones de Antioquia (125 municipios) ─────────────────────
+const SUBREGIONES = {
+  'Bajo Cauca': ['Cáceres','Caucasia','El Bagre','Nechí','Tarazá','Zaragoza'],
+  'Magdalena Medio': ['Caracolí','Maceo','Puerto Berrío','Puerto Nare','Puerto Triunfo','Yondó'],
+  'Nordeste': ['Amalfi','Anorí','Cisneros','Remedios','San Roque','Santo Domingo','Segovia','Vegachí','Yalí','Yolombó'],
+  'Norte': ['Angostura','Belmira','Briceño','Campamento','Carolina del Príncipe','Donmatías','Entrerríos','Gómez Plata','Guadalupe','Ituango','San Andrés de Cuerquía','San José de la Montaña','San Pedro de los Milagros','Santa Rosa de Osos','Toledo','Valdivia','Yarumal'],
+  'Occidente': ['Abriaquí','Anzá','Armenia','Buriticá','Caicedo','Cañasgordas','Dabeiba','Ebéjico','Frontino','Giraldo','Heliconia','Liborina','Olaya','Peque','Sabanalarga','San Jerónimo','Santa Fe de Antioquia','Sopetrán','Uramita'],
+  'Oriente': ['Abejorral','Alejandría','Argelia','El Carmen de Viboral','Cocorná','Concepción','El Peñol','El Retiro','El Santuario','Granada','Guarne','Guatapé','La Ceja','La Unión','Marinilla','Nariño','Rionegro','San Carlos','San Francisco','San Luis','San Rafael','San Vicente Ferrer','Sonsón'],
+  'Suroeste': ['Amagá','Andes','Angelópolis','Betania','Betulia','Caramanta','Ciudad Bolívar','Concordia','Fredonia','Hispania','Jardín','Jericó','La Pintada','Montebello','Pueblorrico','Salgar','Santa Bárbara','Támesis','Tarso','Titiribí','Urrao','Valparaíso','Venecia'],
+  'Urabá': ['Apartadó','Arboletes','Carepa','Chigorodó','Murindó','Mutatá','Necoclí','San Juan de Urabá','San Pedro de Urabá','Turbo','Vigía del Fuerte'],
+  'Valle de Aburrá': ['Barbosa','Bello','Caldas','Copacabana','Envigado','Girardota','Itagüí','La Estrella','Medellín','Sabaneta']
+};
+// Variantes de nombre que aparecen en el Excel o en el mapa
+const ALIAS = { armeniamantequilla:'armenia', sanvicente:'sanvicenteferrer', carolina:'carolinadelprincipe',
+  sanpedro:'sanpedrodelosmilagros', sanandres:'sanandresdecuerquia', carmendeviboral:'elcarmendeviboral',
+  penol:'elpenol', retiro:'elretiro', santuario:'elsantuario', bagre:'elbagre', santafe:'santafedeantioquia',
+  donmatias:'donmatias', sanjosedelamontana:'sanjosedelamontana' };
 
 const ESTADO_COLOR = {
-  'contratado en ejecucion': '#5b9b78',
-  'terminado': '#1d5c3d',
-  'cerrado': '#123f2a',
-  'sin contratar': '#a9c9ad',
-  'contratado sin acta de inicio': '#8fbf9f',
-  'para cierre': '#7c8a4a',
-  'desaprobado': '#b1583f',
-  'no info': '#93a396'
+  'contratado en ejecucion': '#5b9b78', 'terminado': '#1d5c3d', 'cerrado': '#123f2a',
+  'sin contratar': '#a9c9ad', 'contratado sin acta de inicio': '#8fbf9f',
+  'para cierre': '#7c8a4a', 'desaprobado': '#b1583f', 'no info': '#93a396'
 };
-const colorEstado = e => ESTADO_COLOR[norm(e)] || '#9db3a2';
-
 const MESES = {enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,setiembre:8,octubre:9,noviembre:10,diciembre:11};
 const MES3 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-function norm(s){ return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
+
+function norm(s){ return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+const ck = s => norm(s).replace(/ /g,'');
+const colorEstado = e => ESTADO_COLOR[norm(e)] || '#9db3a2';
+
+const MUNI = {};   // clave -> {nombre, sub}
+Object.entries(SUBREGIONES).forEach(([sub, lista]) => lista.forEach(n => { MUNI[ck(n)] = { nombre: n, sub }; }));
+const SUBS = Object.keys(SUBREGIONES);
+function resolver(nombre) { let k = ck(nombre); k = ALIAS[k] || k; return MUNI[k] ? k : null; }
+
 const num = v => {
   if (typeof v === 'number') return isFinite(v) ? v : null;
   if (typeof v === 'string') { const t = v.trim().replace('%',''); if (/^-?\d+([.,]\d+)?$/.test(t)) return parseFloat(t.replace(',','.')); }
@@ -142,8 +192,6 @@ function parseCorte(label, previo) {
   return { label: `${d} ${MES3[m]} ${String(y).slice(2)}`, y, m };
 }
 
-// Convierte la hoja (matriz de filas) en proyectos + cortes mensuales.
-// Detecta las columnas por el texto del encabezado, así que un mes nuevo se reconoce solo.
 function construir(aoa) {
   const hi = aoa.findIndex(r => r && r.map(norm).includes('ano') && r.map(norm).includes('municipio'));
   if (hi < 0) throw new Error('No encontré la fila de encabezados (Año, Municipio…).');
@@ -155,104 +203,365 @@ function construir(aoa) {
   h.forEach((t, i) => {
     if (t.includes('fisica') && !t.includes('municipio')) {
       previo = parseCorte(etiquetas[i] ?? etiquetas[i + 1], previo);
-      cortes.push({ ...previo, col: i });
+      let fin = -1;
+      for (let j = i + 1; j < h.length; j++) {
+        if (h[j].includes('fisica')) break;
+        if (h[j].includes('financiera')) { fin = j; break; }
+      }
+      cortes.push({ ...previo, col: i, fin });
     }
   });
   const proyectos = [];
   for (let r = hi + 1; r < aoa.length; r++) {
     const f = aoa[r]; if (!f) continue;
-    const anio = num(f[c.anio]); if (anio === null) continue;   // salta la fila de totales y las vacías
-    proyectos.push({ anio, mun: String(f[c.mun] ?? '').trim(), bpin: f[c.bpin], nombre: String(f[c.nom] ?? '').trim(),
+    const anio = num(f[c.anio]); if (anio === null) continue;
+    const mun = String(f[c.mun] ?? '').trim();
+    const k = resolver(mun);
+    proyectos.push({ anio, mun, k, sub: k ? MUNI[k].sub : null, depto: norm(mun) === 'departamento',
+      munNombre: k ? MUNI[k].nombre : mun,
+      bpin: f[c.bpin], nombre: String(f[c.nom] ?? '').trim(),
       valor: num(f[c.val]) || 0, aporte: num(f[c.apo]) || 0, estado: String(f[c.est] ?? '').trim().toUpperCase(),
-      fis: cortes.map(k => avance(f[k.col])), rep: c.rep >= 0 ? num(f[c.rep]) : null });
+      fis: cortes.map(k2 => avance(f[k2.col])), fin: cortes.map(k2 => k2.fin >= 0 ? avance(f[k2.fin]) : null),
+      rep: c.rep >= 0 ? num(f[c.rep]) : null });
   }
   return { cortes, proyectos };
 }
 
-// ── Interfaz ────────────────────────────────────────────────────────
-let D, chart, chartEstados, anioSel = 'todos';
+// ── Estado general ───────────────────────────────────────────────
+let D, GEO, chartEstados, miniCharts = [], anioSel = 'todos';
+const sel = { sub: null, muni: null, depto: false };
 const $ = id => document.getElementById(id);
 const fmtP = n => n == null ? '—' : new Intl.NumberFormat('es-CO', {maximumFractionDigits:1}).format(n) + '%';
-const fmtPtsRaw = n => new Intl.NumberFormat('es-CO', {maximumFractionDigits:1, signDisplay:'exceptZero'}).format(n);
 const fmtM = n => '$ ' + new Intl.NumberFormat('es-CO', {maximumFractionDigits:0}).format(n / 1e6) + ' M';
-const prom = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((s,x) => s + x, 0) / v.length : null; };
-const ultimo = p => { for (let i = p.fis.length - 1; i >= 0; i--) if (p.fis[i] != null) return { v: p.fis[i], i }; return null; };
+const ultimo = arr => { for (let i = arr.length - 1; i >= 0; i--) if (arr[i] != null) return arr[i]; return null; };
 const claseEstado = e => /CERRADO|TERMINADO/.test(e) ? 'done' : /EJECUCI/.test(e) ? 'run' : /DESAPROBADO/.test(e) ? 'off' : 'wait';
-const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const plural = (n, s, p) => `${n} ${n === 1 ? s : p}`;
 
 function filtrados() {
   return D.proyectos.filter(p => (anioSel === 'todos' || p.anio === +anioSel)
-    && ($('fEstado').value === '' || p.estado === $('fEstado').value)
-    && ($('fMun').value === '' || p.mun === $('fMun').value));
+    && ($('fEstado').value === '' || p.estado === $('fEstado').value));
+}
+function agg(lista) { return { n: lista.length, valor: lista.reduce((s,p) => s + p.valor, 0), aporte: lista.reduce((s,p) => s + p.aporte, 0), lista }; }
+const statsSub = s => agg(filtrados().filter(p => p.sub === s));
+const statsMuni = k => agg(filtrados().filter(p => p.k === k));
+function alcance() {
+  const f = filtrados();
+  if (sel.depto) return f.filter(p => p.depto);
+  if (sel.muni) return f.filter(p => p.k === sel.muni);
+  if (sel.sub) return f.filter(p => p.sub === sel.sub);
+  return f;
+}
+const nombreAlcance = () => sel.depto ? 'alcance departamental' : sel.muni ? MUNI[sel.muni].nombre : sel.sub ? 'subregión ' + sel.sub : 'Antioquia';
+
+// ── Selección ────────────────────────────────────────────────────
+function irAntioquia() { sel.sub = sel.muni = null; sel.depto = false; pintar(); }
+function irSub(s) { sel.sub = s; sel.muni = null; sel.depto = false; pintar(); }
+function irMuni(k) { sel.muni = k; sel.sub = MUNI[k].sub; sel.depto = false; pintar(); }
+function irDepto() { sel.sub = sel.muni = null; sel.depto = !sel.depto; pintar(); }
+
+// ── Piezas de interfaz ───────────────────────────────────────────
+function pintarMigas() {
+  const partes = [`<button data-go="all">Antioquia</button>`];
+  if (sel.depto) partes.push(`<b>Alcance departamental</b>`);
+  else if (sel.sub) {
+    partes.push(sel.muni ? `<button data-go="sub">${esc(sel.sub)}</button>` : `<b>${esc(sel.sub)}</b>`);
+    if (sel.muni) partes.push(`<b>${esc(MUNI[sel.muni].nombre)}</b>`);
+  } else partes[0] = `<b>Antioquia</b>`;
+  $('migas').innerHTML = partes.join(' <span>›</span> ');
 }
 
-function pintar() {
-  const f = filtrados(), n = D.cortes.length;
-  const estadoFiltrado = $('fEstado').value !== '';
-  // El promedio de avance solo toma los proyectos "Contratado en ejecución",
-  // salvo que el usuario ya haya filtrado por un estado específico.
-  const paraProm = estadoFiltrado ? f : f.filter(p => norm(p.estado) === CONFIG.estadoParaPromedio);
-  $('notaLinea').textContent = estadoFiltrado
-    ? `Promedio de los proyectos con estado "${f[0]?.estado ?? $('fEstado').value}" y dato en cada corte. La línea punteada es lo que reportan los municipios.`
-    : 'Promedio de los proyectos en ejecución con dato en cada corte. La línea punteada es lo que reportan los municipios.';
+function pintarStats() {
+  const a = agg(alcance());
+  $('stats').innerHTML = `
+    <div class="stat"><b>${a.n}</b><span>proyectos · ${esc(nombreAlcance())}</span></div>
+    <div class="stat"><b>${fmtM(a.valor)}</b><span>valor total</span></div>
+    <div class="stat"><b>${fmtM(a.aporte)}</b><span>aporte Gobernación SGR</span></div>`;
+}
 
-  const serie = D.cortes.map((_, i) => prom(paraProm.map(p => p.fis[i])));
-  const actual = serie[n - 1], antes = n > 1 ? serie[n - 2] : null;
-  const rep = prom(paraProm.map(p => p.rep));
-  const dif = (actual != null && antes != null) ? actual - antes : null;
-  const claseDelta = dif == null ? '' : dif > 0.05 ? 'up' : dif < -0.05 ? 'down' : 'flat';
-  const flecha = dif == null ? '' : dif > 0.05 ? '↑' : dif < -0.05 ? '↓' : '→';
-
-  $('resumen').innerHTML = `
-    <div class="hero">
-      <span class="lbl">Avance físico promedio${estadoFiltrado ? '' : ' · en ejecución'}</span>
-      <span class="num">${fmtP(actual)}</span>
-      ${dif != null ? `<span class="delta ${claseDelta}">${flecha} ${fmtPtsRaw(dif)} pts vs. corte anterior</span>` : ''}
-      <span class="nota">${paraProm.length} proyecto${paraProm.length === 1 ? '' : 's'} medido${paraProm.length === 1 ? '' : 's'}${rep != null ? ` · municipios reportan ${fmtP(rep)}` : ''}</span>
-    </div>
-    <div class="stat"><b>${f.length}</b><span>proyectos filtrados</span></div>
-    <div class="stat"><b>${fmtM(f.reduce((s,p) => s + p.valor, 0))}</b><span>valor total</span></div>
-    <div class="stat"><b>${fmtM(f.reduce((s,p) => s + p.aporte, 0))}</b><span>aporte Gobernación SGR</span></div>`;
-
-  const datasets = [{ label: 'Avance físico (promedio)', data: serie, borderColor: '#1d5c3d', backgroundColor: '#1d5c3d', tension: .25, pointRadius: 4, spanGaps: true }];
-  if (rep != null) datasets.push({ label: 'Reportado por municipios (promedio)', data: serie.map(() => rep), borderColor: '#8a8a3d', borderDash: [6,5], pointRadius: 0, borderWidth: 2 });
-  const cuentas = D.cortes.map((_, i) => paraProm.filter(p => p.fis[i] != null).length);
-  if (chart) chart.destroy();
-  chart = new Chart($('chart'), { type: 'line', data: { labels: D.cortes.map(k => k.label), datasets },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
-      plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtP(c.parsed.y)}`, afterLabel: c => c.datasetIndex === 0 ? `${cuentas[c.dataIndex]} proyectos con dato` : '' } } } } });
-
+function graficoEstados(lista) {
   const porEstado = {};
-  f.forEach(p => { porEstado[p.estado] = (porEstado[p.estado] || 0) + 1; });
+  lista.forEach(p => { porEstado[p.estado] = (porEstado[p.estado] || 0) + 1; });
   const estados = Object.keys(porEstado).sort((a,b) => porEstado[b] - porEstado[a]);
-  if (chartEstados) chartEstados.destroy();
   chartEstados = new Chart($('chartEstados'), { type: 'bar',
     data: { labels: estados, datasets: [{ data: estados.map(e => porEstado[e]), backgroundColor: estados.map(colorEstado), borderRadius: 5 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x} proyecto${c.parsed.x === 1 ? '' : 's'}` } } } } });
-
-  $('filas').innerHTML = f.length ? f.map(p => {
-    const u = ultimo(p), prev = u ? p.fis.slice(0, u.i).filter(x => x != null).pop() : null;
-    const difRep = u && p.rep != null ? p.rep - u.v : null;
-    return `<tr><td>${p.anio}</td><td>${esc(p.mun)}</td>
-      <td class="nom">${esc(p.nombre)}<br><small>BPIN ${esc(p.bpin ?? '')}</small></td>
-      <td><span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span></td>
-      <td class="n">${fmtM(p.valor)}</td><td class="n">${fmtM(p.aporte)}</td>
-      <td>${u ? `<b>${fmtP(u.v)}</b> <span class="d">${prev != null ? `(${fmtPtsRaw(u.v - prev)} pts)` : ''}${u.i < D.cortes.length - 1 ? ` · corte ${D.cortes[u.i].label}` : ''}</span>
-        <div class="barra"><i style="width:${Math.min(100, Math.max(0, u.v))}%"></i>${p.rep != null ? `<u style="left:calc(${Math.min(100, Math.max(0, p.rep))}% - 1px)"></u>` : ''}</div>` : '<span class="d">Sin dato</span>'}</td>
-      <td class="n">${p.rep != null ? `<b>${fmtP(p.rep)}</b>` : '<span class="d">—</span>'}${difRep != null && Math.abs(difRep) >= 0.5 ? `<br><span class="d">${fmtPtsRaw(difRep)} pts vs. reporte</span>` : ''}</td></tr>`;
-  }).join('') : '<tr><td colspan="8" class="msg">Ningún proyecto coincide con los filtros.</td></tr>';
 }
 
+function tarjetas(lista) {
+  return lista.map((p, i) => {
+    const uf = ultimo(p.fis), un = ultimo(p.fin);
+    return `<div class="proy-card">
+      <div class="proy-head">
+        <div class="proy-nombre">${esc(p.nombre)}<small>BPIN ${esc(p.bpin ?? '—')} · ${p.anio} · Municipio: ${esc(p.depto ? 'Departamento' : p.munNombre)}</small></div>
+        <span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span>
+      </div>
+      <div class="proy-cifras"><span>Valor: <b>${fmtM(p.valor)}</b></span><span>Aporte Gob.: <b>${fmtM(p.aporte)}</b></span></div>
+      <div class="proy-mini"><canvas id="mini${i}"></canvas></div>
+      <div class="proy-pie">Avance físico: <b>${fmtP(uf)}</b> · Financiero: <b>${fmtP(un)}</b>${p.rep != null ? ` · Reporta el municipio: <b>${fmtP(p.rep)}</b>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function graficosProyectos(lista) {
+  lista.forEach((p, i) => {
+    const etiquetas = D.cortes.map(k => k.label);
+    const datasets = [
+      { label: 'Ejecución física', data: p.fis, borderColor: '#1d5c3d', backgroundColor: '#1d5c3d', tension: .25, pointRadius: 3, spanGaps: true },
+      { label: 'Ejecución financiera', data: p.fin, borderColor: '#8fbf9f', backgroundColor: '#8fbf9f', tension: .25, pointRadius: 3, spanGaps: true }
+    ];
+    if (p.rep != null) datasets.push({ label: 'Física reportada por el municipio', data: etiquetas.map(() => p.rep), borderColor: '#8a8a3d', borderDash: [5,4], pointRadius: 0, borderWidth: 2 });
+    const max = Math.max(100, ...p.fis.filter(v => v != null), ...p.fin.filter(v => v != null), p.rep ?? 0);
+    miniCharts.push(new Chart($('mini' + i), { type: 'line', data: { labels: etiquetas, datasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { y: { min: 0, suggestedMax: max, ticks: { stepSize: 50, callback: v => v + '%' } }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } } },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtP(c.parsed.y)}` } } } } }));
+  });
+}
+
+function filaHtml(attr, valorAttr, nombre, s) {
+  return `<button class="fila" ${attr}="${esc(valorAttr)}"><b>${esc(nombre)}</b><small>${plural(s.n, 'proyecto', 'proyectos')}</small><small>${fmtM(s.valor)}</small></button>`;
+}
+
+function pintarPanel() {
+  if (chartEstados) { chartEstados.destroy(); chartEstados = null; }
+  miniCharts.forEach(c => c.destroy()); miniCharts = [];
+  const P = $('panelDerecho');
+
+  // Proyectos de un municipio o de alcance departamental → fichas individuales
+  if (sel.muni || sel.depto) {
+    const lista = alcance();
+    const titulo = sel.depto ? 'Alcance departamental' : MUNI[sel.muni].nombre;
+    const a = agg(lista);
+    const volver = sel.depto ? '← Antioquia' : '← ' + sel.sub;
+    P.innerHTML = `<button class="volver" id="btnVolver">${esc(volver)}</button>
+      <h2>${esc(titulo)}</h2>
+      <div class="detalle-kpis"><span><b>${a.n}</b> proyecto${a.n === 1 ? '' : 's'}</span><span><b>${fmtM(a.valor)}</b> valor total</span><span><b>${fmtM(a.aporte)}</b> aporte Gobernación</span></div>
+      ${lista.length ? `<div class="proy-list">${tarjetas(lista)}</div>` : `<p class="msg">Sin proyectos registrados con los filtros actuales.</p>`}`;
+    $('btnVolver').onclick = () => sel.depto ? irAntioquia() : irSub(sel.sub);
+    graficosProyectos(lista);
+    return;
+  }
+
+  // Subregión → estados + municipios
+  if (sel.sub) {
+    const lista = alcance();
+    const munis = SUBREGIONES[sel.sub].map(n => ({ n, k: ck(n) })).map(m => ({ ...m, s: statsMuni(m.k) }));
+    const con = munis.filter(m => m.s.n > 0).sort((a,b) => b.s.n - a.s.n || b.s.valor - a.s.valor);
+    const sin = munis.length - con.length;
+    P.innerHTML = `<button class="volver" id="btnVolver">← Antioquia</button>
+      <h2>Subregión ${esc(sel.sub)}</h2>
+      <p class="hint">Proyectos por estado. Elige un municipio en el mapa o en la lista para ver sus proyectos.</p>
+      <div class="chartbox"><canvas id="chartEstados"></canvas></div>
+      <h3>Municipios con proyectos</h3>
+      <div class="filas">${con.length ? con.map(m => filaHtml('data-muni', m.k, m.n, m.s)).join('') : '<p class="msg">Sin proyectos con los filtros actuales.</p>'}</div>
+      ${sin ? `<p class="hint" style="margin-top:8px">${plural(sin, 'municipio sin proyectos', 'municipios sin proyectos')} con los filtros actuales.</p>` : ''}`;
+    $('btnVolver').onclick = irAntioquia;
+    if (lista.length) graficoEstados(lista);
+    return;
+  }
+
+  // Antioquia → estados + subregiones
+  const subs = SUBS.map(s => ({ s, st: statsSub(s) })).filter(x => x.st.n > 0).sort((a,b) => b.st.n - a.st.n);
+  P.innerHTML = `<h2>Proyectos por estado</h2>
+    <p class="hint">Cuenta de proyectos según los filtros actuales.</p>
+    <div class="chartbox"><canvas id="chartEstados"></canvas></div>
+    <h3>Por subregión</h3>
+    <div class="filas">${subs.map(x => filaHtml('data-sub', x.s, x.s, x.st)).join('')}</div>`;
+  graficoEstados(filtrados());
+}
+
+// ── Mapa ─────────────────────────────────────────────────────────
+function transformar(bounds) {
+  const g = $('zoomG'), vb = $('mapaSvg').viewBox.baseVal;
+  let k = 1, tx = 0, ty = 0;
+  if (bounds) {
+    const w = bounds[1][0] - bounds[0][0], h = bounds[1][1] - bounds[0][1];
+    k = Math.min(vb.width / w, vb.height / h) * 0.86;
+    tx = vb.width / 2 - k * (bounds[0][0] + bounds[1][0]) / 2;
+    ty = vb.height / 2 - k * (bounds[0][1] + bounds[1][1]) / 2;
+  }
+  g.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  GEO.k = k;
+  GEO.subLabels.forEach(t => { t.style.fontSize = (13 / k) + 'px'; t.style.strokeWidth = (3 / k) + 'px'; });
+  GEO.muniLabels.forEach(t => { t.style.fontSize = (9.5 / k) + 'px'; t.style.strokeWidth = (2.5 / k) + 'px'; });
+}
+
+function pintarMapa() {
+  if (!GEO) return;
+  const f = filtrados();
+  const conDatos = new Set(f.map(p => p.k));
+  const svg = $('mapaSvg');
+  svg.classList.toggle('nivel-sub', !!sel.sub);
+  GEO.paths.forEach(({ key, sub, el }) => {
+    el.classList.toggle('tiene', conDatos.has(key));
+    el.classList.toggle('sel', key === sel.muni);
+    el.classList.toggle('dim', !!sel.sub && sub !== sel.sub);
+    el.classList.toggle('activo', !!sel.sub && sub === sel.sub);
+    el.classList.remove('hov');
+  });
+  GEO.subLabels.forEach(t => t.classList.toggle('show', !sel.sub));
+  GEO.muniLabels.forEach(t => t.classList.toggle('show', !!sel.sub && t.dataset.sub === sel.sub));
+  transformar(sel.sub ? GEO.boundsSub[sel.sub] : null);
+  $('tituloMapa').textContent = sel.sub ? `Municipios de ${sel.sub}` : 'Subregiones';
+  $('hintMapa').textContent = sel.sub
+    ? 'Pasa el cursor sobre un municipio para ver cifras rápidas y haz clic para ver sus proyectos. Haz clic en otra subregión para cambiar.'
+    : 'Pasa el cursor sobre una subregión para ver cifras rápidas y haz clic para acercarte a sus municipios.';
+}
+
+function tooltipHtml(nombre, s) {
+  return `<b>${esc(nombre)}</b>${plural(s.n, 'proyecto', 'proyectos')}<br>Valor: ${fmtM(s.valor)}<br>Aporte Gobernación: ${fmtM(s.aporte)}`;
+}
+
+function bordesSubregion(features, projection, subDe) {
+  const aristas = new Map();
+  const r1 = v => Math.round(v * 10) / 10;
+  features.forEach(ft => {
+    const s = subDe(ft); if (!s || !ft.geometry) return;
+    const polis = ft.geometry.type === 'Polygon' ? [ft.geometry.coordinates] : ft.geometry.type === 'MultiPolygon' ? ft.geometry.coordinates : [];
+    polis.forEach(poli => poli.forEach(anillo => {
+      let prev = null;
+      anillo.forEach(c => {
+        const q = projection(c); if (!q) return;
+        const pt = [r1(q[0]), r1(q[1])];
+        if (prev && (prev[0] !== pt[0] || prev[1] !== pt[1])) {
+          const a = prev.join(','), b = pt.join(',');
+          const key = a < b ? a + '|' + b : b + '|' + a;
+          let e = aristas.get(key);
+          if (!e) { e = { a: prev, b: pt, subs: new Set() }; aristas.set(key, e); }
+          e.subs.add(s);
+        }
+        prev = pt;
+      });
+    }));
+  });
+  let d = '';
+  aristas.forEach(e => { if (e.subs.size > 1) d += `M${e.a[0]},${e.a[1]}L${e.b[0]},${e.b[1]}`; });
+  return d;
+}
+
+async function cargarGeo() {
+  let data, esLocal = true;
+  try {
+    const r = await fetch(CONFIG.geoLocal, { cache: 'no-store' });
+    if (!r.ok) throw 0;
+    data = await r.json();
+  } catch (e) {
+    esLocal = false;
+    const r = await fetch(CONFIG.geoRemoto, { cache: 'force-cache' });
+    data = await r.json();
+  }
+  let features = data.features || [];
+  if (!esLocal) features = features.filter(f => norm(f.properties?.[CONFIG.geoCampoDepto]) === norm(CONFIG.geoValorDepto));
+  const fc = { type: 'FeatureCollection', features };
+  const svg = $('mapaSvg'), zg = $('zoomG'), vb = svg.viewBox.baseVal;
+  const projection = d3.geoMercator().fitExtent([[6,6],[vb.width-6,vb.height-6]], fc);
+  const pathGen = d3.geoPath(projection);
+
+  const info = features.map(f => {
+    const nombre = f.properties?.[CONFIG.geoCampoNombre] || f.properties?.name || '';
+    const key = resolver(nombre);
+    return { f, nombre, key, sub: key ? MUNI[key].sub : null };
+  });
+  const noUbicados = info.filter(x => !x.key).map(x => x.nombre);
+
+  const munisSvg = info.map((x, i) => `<path class="muni${x.key ? '' : ' nomap'}" d="${pathGen(x.f) || ''}" data-i="${i}"></path>`).join('');
+  const lineas = `<path class="subline" d="${bordesSubregion(features, projection, f => info[features.indexOf(f)].sub)}"></path>`;
+
+  // Etiquetas: centroide ponderado por área de cada subregión y de cada municipio
+  const boundsSub = {}, acc = {};
+  info.forEach(x => {
+    if (!x.sub) return;
+    const b = pathGen.bounds(x.f), a = pathGen.area(x.f), c = pathGen.centroid(x.f);
+    const bs = boundsSub[x.sub];
+    boundsSub[x.sub] = bs ? [[Math.min(bs[0][0], b[0][0]), Math.min(bs[0][1], b[0][1])], [Math.max(bs[1][0], b[1][0]), Math.max(bs[1][1], b[1][1])]] : b;
+    const t = acc[x.sub] || (acc[x.sub] = { a: 0, x: 0, y: 0 });
+    if (isFinite(c[0]) && isFinite(a)) { t.a += a; t.x += c[0] * a; t.y += c[1] * a; }
+  });
+  const sLbl = SUBS.filter(s => acc[s] && acc[s].a).map(s => `<text class="lbl slbl" x="${acc[s].x / acc[s].a}" y="${acc[s].y / acc[s].a}">${esc(s)}</text>`).join('');
+  const mLbl = info.filter(x => x.key).map(x => { const c = pathGen.centroid(x.f);
+    return isFinite(c[0]) ? `<text class="lbl mlbl" data-sub="${esc(x.sub)}" x="${c[0]}" y="${c[1]}">${esc(MUNI[x.key].nombre)}</text>` : ''; }).join('');
+
+  zg.innerHTML = munisSvg + lineas + sLbl + mLbl;
+  const paths = [...zg.querySelectorAll('path.muni')].map(el => { const x = info[+el.dataset.i]; return { key: x.key, sub: x.sub, nombre: x.nombre, el }; });
+  GEO = { paths, boundsSub, k: 1,
+    subLabels: [...zg.querySelectorAll('text.slbl')], muniLabels: [...zg.querySelectorAll('text.mlbl')] };
+
+  const tip = $('tooltip'), box = svg.closest('.mapaBox');
+  const subPaths = s => paths.filter(p => p.sub === s);
+  const limpiarHov = () => paths.forEach(p => p.el.classList.remove('hov'));
+  paths.forEach(({ key, sub, el }) => {
+    if (!key) return;
+    el.addEventListener('mousemove', e => {
+      const rect = box.getBoundingClientRect();
+      const enMuni = sel.sub && sub === sel.sub;
+      limpiarHov();
+      if (enMuni) tip.innerHTML = tooltipHtml(MUNI[key].nombre, statsMuni(key));
+      else { subPaths(sub).forEach(p => p.el.classList.add('hov')); tip.innerHTML = tooltipHtml('Subregión ' + sub, statsSub(sub)); }
+      tip.style.left = (e.clientX - rect.left) + 'px';
+      tip.style.top = (e.clientY - rect.top) + 'px';
+      tip.style.opacity = 1;
+    });
+    el.addEventListener('mouseleave', () => { tip.style.opacity = 0; limpiarHov(); });
+    el.addEventListener('click', () => {
+      tip.style.opacity = 0;
+      if (sel.sub && sub === sel.sub) { sel.muni === key ? irSub(sub) : irMuni(key); }
+      else irSub(sub);
+    });
+  });
+
+  const sinProy = new Set();
+  D.proyectos.forEach(p => { if (!p.k && !p.depto) sinProy.add(p.mun); });
+  const avisos = [];
+  if (sinProy.size) avisos.push(`Proyectos con municipio no reconocido (revisar nombre): ${[...sinProy].join(', ')}.`);
+  if (noUbicados.length) avisos.push(`Polígonos del mapa sin subregión asignada: ${noUbicados.join(', ')}.`);
+  $('sinMapa').textContent = avisos.join(' ');
+}
+
+// ── Filtros y arranque ───────────────────────────────────────────
 function iniciarFiltros() {
   const anios = [...new Set(D.proyectos.map(p => p.anio))].sort();
   $('anios').innerHTML = ['todos', ...anios].map(a => `<button aria-pressed="${a === anioSel}" data-a="${a}">${a === 'todos' ? 'Todos los años' : a}</button>`).join('');
   $('anios').onclick = e => { const b = e.target.closest('button'); if (!b) return; anioSel = b.dataset.a;
     $('anios').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); pintar(); };
-  const opciones = (id, todos, vals) => { $(id).innerHTML = `<option value="">${todos}</option>` + [...new Set(vals)].filter(Boolean).sort((a,b) => a.localeCompare(b,'es')).map(v => `<option>${esc(v)}</option>`).join(''); $(id).onchange = pintar; };
-  opciones('fEstado', 'Todos los estados', D.proyectos.map(p => p.estado));
-  opciones('fMun', 'Todos los municipios', D.proyectos.map(p => p.mun));
+  $('fEstado').innerHTML = '<option value="">Todos los estados</option>' + [...new Set(D.proyectos.map(p => p.estado))].filter(Boolean).sort((a,b) => a.localeCompare(b,'es')).map(v => `<option>${esc(v)}</option>`).join('');
+  $('fEstado').onchange = pintar;
+
+  $('listaZonas').innerHTML = [...SUBS.map(s => `<option value="Subregión ${esc(s)}">`),
+    ...Object.values(MUNI).map(m => `<option value="${esc(m.nombre)}">`)].join('');
+  $('buscaZona').addEventListener('change', e => {
+    const t = norm(e.target.value).replace(/^subregion /, '');
+    const s = SUBS.find(x => norm(x) === t);
+    if (s && norm(e.target.value).startsWith('subregion')) { irSub(s); e.target.value = ''; return; }
+    const k = resolver(e.target.value);
+    if (k) { irMuni(k); e.target.value = ''; }
+    else if (s) { irSub(s); e.target.value = ''; }
+  });
+
+  $('btnDepto').onclick = irDepto;
+  $('migas').onclick = e => { const b = e.target.closest('button'); if (!b) return; b.dataset.go === 'all' ? irAntioquia() : irSub(sel.sub); };
+  $('panelDerecho').onclick = e => {
+    const m = e.target.closest('[data-muni]'); if (m) return irMuni(m.dataset.muni);
+    const s = e.target.closest('[data-sub]'); if (s) return irSub(s.dataset.sub);
+  };
+}
+
+function pintarChipDepto() {
+  const n = filtrados().filter(p => p.depto).length;
+  const b = $('btnDepto');
+  b.hidden = n === 0;
+  b.textContent = `Alcance departamental (${n})`;
+  b.setAttribute('aria-pressed', sel.depto);
+}
+
+function pintar() {
+  pintarChipDepto();
+  pintarMigas();
+  pintarStats();
+  pintarPanel();
+  pintarMapa();
 }
 
 (async () => {
@@ -264,10 +573,13 @@ function iniciarFiltros() {
     D = construir(aoa);
     const ult = D.cortes[D.cortes.length - 1];
     $('corte').textContent = ult ? `Último corte: ${ult.label} · ${D.proyectos.length} proyectos` : `${D.proyectos.length} proyectos`;
-    iniciarFiltros(); pintar();
+    iniciarFiltros();
+    pintar();   // ya se puede navegar con las listas aunque el mapa tarde
+    try { await cargarGeo(); pintar(); }
+    catch (e) { $('sinMapa').textContent = 'No se pudo cargar el mapa; puedes navegar con las listas de la derecha.'; }
   } catch (e) {
     $('corte').textContent = '';
-    $('resumen').innerHTML = `<div class="msg" style="width:100%">No se pudieron cargar los datos. ${esc(e.message)}<br>Si abriste este archivo haciendo doble clic, los navegadores lo bloquean: ábrelo desde el enlace de GitHub Pages.</div>`;
+    $('stats').innerHTML = `<div class="msg" style="grid-column:1/-1">No se pudieron cargar los datos. ${esc(e.message)}<br>Si abriste este archivo haciendo doble clic, los navegadores lo bloquean: ábrelo desde el enlace de GitHub Pages.</div>`;
   }
 })();
 </script>
