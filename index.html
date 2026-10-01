@@ -89,6 +89,26 @@ text.lbl.show{opacity:1}
 .proy-mini{height:165px;position:relative;margin-top:4px}
 .proy-pie{margin-top:6px;font-size:.8rem;color:var(--muted)}
 .msg{padding:30px 10px;text-align:center;color:var(--muted)}
+.fgrupo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.fgrupo>.etq{font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.seg button small{display:block;font-size:.72rem;opacity:.85}
+.seg.ejec button{text-align:left;line-height:1.25}
+.leyenda{display:inline-flex;gap:6px;flex-wrap:wrap}
+.leyenda button{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+.dot.r{background:#d64545}.dot.y{background:#f2c230}.dot.g{background:#3fa66b}.dot.n{background:#b9c4bb}
+/* mapa en modo IGPR */
+#mapaSvg.ig path.muni.tiene.ig-r,#mapaSvg.ig path.muni.tiene.ig-r.dim{fill:#d64545}
+#mapaSvg.ig path.muni.tiene.ig-y,#mapaSvg.ig path.muni.tiene.ig-y.dim{fill:#f2c230}
+#mapaSvg.ig path.muni.tiene.ig-g,#mapaSvg.ig path.muni.tiene.ig-g.dim{fill:#3fa66b}
+#mapaSvg.ig path.muni.tiene.dim{opacity:.45}
+#mapaSvg.ig path.muni.tiene.hov{filter:brightness(.88)}
+#mapaSvg.ig path.muni.sel{stroke:#123f2a;stroke-width:2.4px}
+.pill.igr{background:#d64545;color:#fff}.pill.igy{background:#f2c230;color:#3b2f00}.pill.igg{background:#3fa66b;color:#fff}.pill.ign{background:#dfe5e0;color:var(--muted)}
+.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.proy-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:.74rem;padding:1px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+.nota{font-size:.78rem;color:var(--muted);margin:-4px 0 12px}
 </style>
 </head>
 <body>
@@ -101,8 +121,13 @@ text.lbl.show{opacity:1}
     <select id="fEstado" aria-label="Estado"></select>
     <input type="search" id="buscaZona" list="listaZonas" placeholder="Buscar subregión o municipio…" aria-label="Buscar subregión o municipio">
     <datalist id="listaZonas"></datalist>
+    <select id="fEntregable" aria-label="Entregable"></select>
     <button class="chip" id="btnDepto" aria-pressed="false" hidden></button>
+    <button class="chip" id="btnIgpr" aria-pressed="false" title="Colorea el mapa según el IGPR">IGPR</button>
   </div>
+  <div class="fgrupo" id="grpEjec"><span class="etq">Ejecutor</span><div class="seg ejec" id="ejec" role="group" aria-label="Ejecutor"></div></div>
+  <div class="fgrupo" id="grpIgpr" hidden><span class="etq">IGPR</span><div class="seg leyenda" id="leyIgpr" role="group" aria-label="Filtro IGPR"></div></div>
+  <p class="nota" id="notaIgpr" hidden>Rojo: IGPR &lt; 60 · Amarillo: «No aplica» · Verde: IGPR ≥ 60 o «Cerrado». Si un municipio tiene varios proyectos, el mapa muestra el caso más crítico (rojo &gt; amarillo &gt; verde).</p>
 
   <nav class="migas" id="migas" aria-label="Ubicación"></nav>
   <div class="stats" id="stats"></div>
@@ -192,11 +217,24 @@ function parseCorte(label, previo) {
   return { label: `${d} ${MES3[m]} ${String(y).slice(2)}`, y, m };
 }
 
+// IGPR: rojo < 60 · amarillo = «No aplica» · verde ≥ 60 o «Cerrado»
+function avanceIgpr(v) { return num(v); }
+function claseIgpr(v) {
+  const n = num(v);
+  if (n !== null) return n < 60 ? 'r' : 'g';
+  const t = norm(v);
+  if (t === 'cerrado') return 'g';
+  if (t === 'no aplica') return 'y';
+  return 'n';   // sin dato
+}
+const IGPR_TXT = { r: 'IGPR < 60', y: 'No aplica', g: 'IGPR ≥ 60 o cerrado', n: 'Sin dato' };
+
 function construir(aoa) {
   const hi = aoa.findIndex(r => r && r.map(norm).includes('ano') && r.map(norm).includes('municipio'));
   if (hi < 0) throw new Error('No encontré la fila de encabezados (Año, Municipio…).');
   const h = aoa[hi].map(norm), etiquetas = aoa[hi - 1] || [];
   const c = { anio: h.indexOf('ano'), mun: h.indexOf('municipio'), bpin: h.indexOf('bpin'), nom: h.indexOf('nombre'),
+    ent: h.indexOf('entregable'), des: h.findIndex(x => x.startsWith('designacion')), igpr: h.findIndex(x => x.startsWith('igpr')),
     val: h.findIndex(x => x.startsWith('valor')), apo: h.findIndex(x => x.startsWith('aporte')), est: h.indexOf('estado'),
     rep: h.findIndex(x => x.includes('municipio') && x.includes('fisica')) };
   const cortes = []; let previo = null;
@@ -220,6 +258,9 @@ function construir(aoa) {
     proyectos.push({ anio, mun, k, sub: k ? MUNI[k].sub : null, depto: norm(mun) === 'departamento',
       munNombre: k ? MUNI[k].nombre : mun,
       bpin: f[c.bpin], nombre: String(f[c.nom] ?? '').trim(),
+      entregable: c.ent >= 0 ? String(f[c.ent] ?? '').replace(/\s+/g,' ').trim().toUpperCase() : '',
+      ejecutor: c.des >= 0 ? (norm(f[c.des]).includes('ejecutora') ? 'ejecutora' : norm(f[c.des]).includes('aportante') ? 'aportante' : '') : '',
+      igprRaw: c.igpr >= 0 ? f[c.igpr] : null, igpr: c.igpr >= 0 ? avanceIgpr(f[c.igpr]) : null, igprClase: c.igpr >= 0 ? claseIgpr(f[c.igpr]) : 'n',
       valor: num(f[c.val]) || 0, aporte: num(f[c.apo]) || 0, estado: String(f[c.est] ?? '').trim().toUpperCase(),
       fis: cortes.map(k2 => avance(f[k2.col])), fin: cortes.map(k2 => k2.fin >= 0 ? avance(f[k2.fin]) : null),
       rep: c.rep >= 0 ? num(f[c.rep]) : null });
@@ -230,19 +271,29 @@ function construir(aoa) {
 // ── Estado general ───────────────────────────────────────────────
 let D, GEO, chartEstados, miniCharts = [], anioSel = 'todos';
 const sel = { sub: null, muni: null, depto: false };
+let ejecSel = '', igprOn = false, igprSel = '';
 const $ = id => document.getElementById(id);
-const fmtP = n => n == null ? '—' : new Intl.NumberFormat('es-CO', {maximumFractionDigits:1}).format(n) + '%';
-const fmtM = n => '$ ' + new Intl.NumberFormat('es-CO', {maximumFractionDigits:0}).format(n / 1e6) + ' M';
+// Nunca se redondea hacia arriba: se trunca (1.408.985.533 → «1.408 M», no «1.409 M»)
+const trunc = (n, d) => { const f = 10 ** d; return Math.trunc(Number((n * f).toFixed(6))) / f; };
+const fmtP = n => n == null ? '—' : new Intl.NumberFormat('es-CO', {maximumFractionDigits:2}).format(trunc(n, 2)) + '%';
+const fmtM = n => '$ ' + new Intl.NumberFormat('es-CO', {maximumFractionDigits:0}).format(trunc(n / 1e6, 0)) + ' M';
+const fmtFull = n => { const r = Math.round(n * 100) / 100; return '$ ' + new Intl.NumberFormat('es-CO', {minimumFractionDigits: Number.isInteger(r) ? 0 : 2, maximumFractionDigits:2}).format(r); };
+// En el detalle de municipio / alcance departamental se muestra el valor completo
+const fmtV = n => (sel.muni || sel.depto) ? fmtFull(n) : fmtM(n);
 const ultimo = arr => { for (let i = arr.length - 1; i >= 0; i--) if (arr[i] != null) return arr[i]; return null; };
 const claseEstado = e => /CERRADO|TERMINADO/.test(e) ? 'done' : /EJECUCI/.test(e) ? 'run' : /DESAPROBADO/.test(e) ? 'off' : 'wait';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const plural = (n, s, p) => `${n} ${n === 1 ? s : p}`;
 
-function filtrados() {
+function filtrados(omitir) {
   return D.proyectos.filter(p => (anioSel === 'todos' || p.anio === +anioSel)
-    && ($('fEstado').value === '' || p.estado === $('fEstado').value));
+    && ($('fEstado').value === '' || p.estado === $('fEstado').value)
+    && ($('fEntregable').value === '' || p.entregable === $('fEntregable').value)
+    && (omitir === 'ejec' || ejecSel === '' || p.ejecutor === ejecSel)
+    && (!igprOn || igprSel === '' || p.igprClase === igprSel));
 }
-function agg(lista) { return { n: lista.length, valor: lista.reduce((s,p) => s + p.valor, 0), aporte: lista.reduce((s,p) => s + p.aporte, 0), lista }; }
+const suma2 = (l, k) => Math.round(l.reduce((s,p) => s + p[k], 0) * 100) / 100;   // evita errores de coma flotante
+function agg(lista) { return { n: lista.length, valor: suma2(lista, 'valor'), aporte: suma2(lista, 'aporte'), lista }; }
 const statsSub = s => agg(filtrados().filter(p => p.sub === s));
 const statsMuni = k => agg(filtrados().filter(p => p.k === k));
 function alcance() {
@@ -275,8 +326,8 @@ function pintarStats() {
   const a = agg(alcance());
   $('stats').innerHTML = `
     <div class="stat"><b>${a.n}</b><span>proyectos · ${esc(nombreAlcance())}</span></div>
-    <div class="stat"><b>${fmtM(a.valor)}</b><span>valor total</span></div>
-    <div class="stat"><b>${fmtM(a.aporte)}</b><span>aporte Gobernación SGR</span></div>`;
+    <div class="stat"><b>${fmtV(a.valor)}</b><span>valor total</span></div>
+    <div class="stat"><b>${fmtV(a.aporte)}</b><span>aporte Gobernación SGR</span></div>`;
 }
 
 function graficoEstados(lista) {
@@ -296,9 +347,11 @@ function tarjetas(lista) {
     return `<div class="proy-card">
       <div class="proy-head">
         <div class="proy-nombre">${esc(p.nombre)}<small>BPIN ${esc(p.bpin ?? '—')} · ${p.anio} · Municipio: ${esc(p.depto ? 'Departamento' : p.munNombre)}</small></div>
-        <span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span>
+        <div class="pills"><span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span>
+          </div>
       </div>
-      <div class="proy-cifras"><span>Valor: <b>${fmtM(p.valor)}</b></span><span>Aporte Gob.: <b>${fmtM(p.aporte)}</b></span></div>
+      <div class="proy-meta">${p.entregable ? `<span class="tag">${esc(p.entregable)}</span>` : ''}${p.ejecutor ? `<span class="tag">${p.ejecutor === 'ejecutora' ? 'Entidad Ejecutora' : 'Entidad Aportante Recursos'}</span>` : ''}<span class="pill ig${p.igprClase}">IGPR: ${p.igprRaw == null || p.igprRaw === '' ? 'sin dato' : esc(typeof p.igprRaw === 'number' ? fmtP(p.igprRaw).replace('%','') : String(p.igprRaw).trim())}</span></div>
+      <div class="proy-cifras"><span>Valor: <b>${fmtFull(p.valor)}</b></span><span>Aporte Gob.: <b>${fmtFull(p.aporte)}</b></span></div>
       <div class="proy-mini"><canvas id="mini${i}"></canvas></div>
       <div class="proy-pie">Avance físico: <b>${fmtP(uf)}</b> · Financiero: <b>${fmtP(un)}</b>${p.rep != null ? ` · Reporta el municipio: <b>${fmtP(p.rep)}</b>` : ''}</div>
     </div>`;
@@ -338,7 +391,7 @@ function pintarPanel() {
     const volver = sel.depto ? '← Antioquia' : '← ' + sel.sub;
     P.innerHTML = `<button class="volver" id="btnVolver">${esc(volver)}</button>
       <h2>${esc(titulo)}</h2>
-      <div class="detalle-kpis"><span><b>${a.n}</b> proyecto${a.n === 1 ? '' : 's'}</span><span><b>${fmtM(a.valor)}</b> valor total</span><span><b>${fmtM(a.aporte)}</b> aporte Gobernación</span></div>
+      <div class="detalle-kpis"><span><b>${a.n}</b> proyecto${a.n === 1 ? '' : 's'}</span><span><b>${fmtV(a.valor)}</b> valor total</span><span><b>${fmtV(a.aporte)}</b> aporte Gobernación</span></div>
       ${lista.length ? `<div class="proy-list">${tarjetas(lista)}</div>` : `<p class="msg">Sin proyectos registrados con los filtros actuales.</p>`}`;
     $('btnVolver').onclick = () => sel.depto ? irAntioquia() : irSub(sel.sub);
     graficosProyectos(lista);
@@ -393,10 +446,15 @@ function pintarMapa() {
   if (!GEO) return;
   const f = filtrados();
   const conDatos = new Set(f.map(p => p.k));
+  const peor = {};   // municipio -> r | y | g | n
+  const orden = { r: 4, y: 3, g: 2, n: 1 };
+  f.forEach(p => { if (p.k && (!peor[p.k] || orden[p.igprClase] > orden[peor[p.k]])) peor[p.k] = p.igprClase; });
   const svg = $('mapaSvg');
   svg.classList.toggle('nivel-sub', !!sel.sub);
+  svg.classList.toggle('ig', igprOn);
   GEO.paths.forEach(({ key, sub, el }) => {
     el.classList.toggle('tiene', conDatos.has(key));
+    ['r','y','g'].forEach(c => el.classList.toggle('ig-' + c, igprOn && peor[key] === c));
     el.classList.toggle('sel', key === sel.muni);
     el.classList.toggle('dim', !!sel.sub && sub !== sel.sub);
     el.classList.toggle('activo', !!sel.sub && sub === sel.sub);
@@ -412,7 +470,9 @@ function pintarMapa() {
 }
 
 function tooltipHtml(nombre, s) {
-  return `<b>${esc(nombre)}</b>${plural(s.n, 'proyecto', 'proyectos')}<br>Valor: ${fmtM(s.valor)}<br>Aporte Gobernación: ${fmtM(s.aporte)}`;
+  const c = { r: 0, y: 0, g: 0, n: 0 }; s.lista.forEach(p => c[p.igprClase]++);
+  const ig = igprOn ? `<br>IGPR: ${c.r} rojo · ${c.y} amarillo · ${c.g} verde${c.n ? ' · ' + c.n + ' sin dato' : ''}` : '';
+  return `<b>${esc(nombre)}</b>${plural(s.n, 'proyecto', 'proyectos')}<br>Valor: ${fmtM(s.valor)}<br>Aporte Gobernación: ${fmtM(s.aporte)}${ig}`;
 }
 
 function bordesSubregion(features, projection, subDe) {
@@ -540,6 +600,12 @@ function iniciarFiltros() {
     else if (s) { irSub(s); e.target.value = ''; }
   });
 
+  const ents = [...new Set(D.proyectos.map(p => p.entregable))].filter(Boolean).sort((a,b) => a.localeCompare(b,'es'));
+  $('fEntregable').innerHTML = '<option value="">Todos los entregables</option>' + ents.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  $('fEntregable').onchange = pintar;
+  $('ejec').onclick = e => { const b = e.target.closest('button'); if (!b) return; ejecSel = b.dataset.e; pintar(); };
+  $('btnIgpr').onclick = () => { igprOn = !igprOn; if (!igprOn) igprSel = ''; pintar(); };
+  $('leyIgpr').onclick = e => { const b = e.target.closest('button'); if (!b) return; igprSel = igprSel === b.dataset.c ? '' : b.dataset.c; pintar(); };
   $('btnDepto').onclick = irDepto;
   $('migas').onclick = e => { const b = e.target.closest('button'); if (!b) return; b.dataset.go === 'all' ? irAntioquia() : irSub(sel.sub); };
   $('panelDerecho').onclick = e => {
@@ -556,7 +622,28 @@ function pintarChipDepto() {
   b.setAttribute('aria-pressed', sel.depto);
 }
 
+function pintarEjecutor() {
+  const base = filtrados('ejec');
+  const grupos = [['', 'Sin filtro', base], ['ejecutora', 'Entidad Ejecutora (Departamento de Antioquia)', base.filter(p => p.ejecutor === 'ejecutora')],
+    ['aportante', 'Entidad Aportante Recursos', base.filter(p => p.ejecutor === 'aportante')]];
+  $('ejec').innerHTML = grupos.map(([v, t, l]) => { const a = agg(l);
+    return `<button data-e="${v}" aria-pressed="${ejecSel === v}">${t}<small>${plural(a.n, 'proyecto', 'proyectos')} · ${fmtM(a.valor)}</small></button>`; }).join('');
+}
+function pintarIgpr() {
+  $('btnIgpr').setAttribute('aria-pressed', igprOn);
+  $('grpIgpr').hidden = $('notaIgpr').hidden = !igprOn;
+  if (!igprOn) return;
+  const base = D.proyectos.filter(p => (anioSel === 'todos' || p.anio === +anioSel) && ($('fEstado').value === '' || p.estado === $('fEstado').value)
+    && ($('fEntregable').value === '' || p.entregable === $('fEntregable').value) && (ejecSel === '' || p.ejecutor === ejecSel));
+  const n = c => base.filter(p => p.igprClase === c).length;
+  const defs = [['r', 'IGPR < 60'], ['y', 'No aplica'], ['g', 'IGPR ≥ 60 o cerrado']];
+  if (n('n')) defs.push(['n', 'Sin dato']);
+  $('leyIgpr').innerHTML = defs.map(([c, t]) => `<button data-c="${c}" aria-pressed="${igprSel === c}"><span class="dot ${c}"></span>${t} (${n(c)})</button>`).join('');
+}
+
 function pintar() {
+  pintarEjecutor();
+  pintarIgpr();
   pintarChipDepto();
   pintarMigas();
   pintarStats();
