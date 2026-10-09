@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sistema General de Regalías · Seguimiento de proyectos</title>
+<title>En Antioquia están pasando cosas muy buenas · Seguimiento de proyectos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -124,6 +124,21 @@ text.lbl.show{opacity:1}
 .proy-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .tag{font-size:.74rem;padding:1px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted)}
 .nota{font-size:.78rem;color:var(--muted);margin:-4px 0 12px}
+.alc{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.alc h2{font-size:1.05rem;margin:0;color:var(--accent-dark)}
+.alc-sub{color:var(--muted);font-size:.83rem;margin:2px 0 8px}
+.alc-ley{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:0 0 10px}
+.alc-ley i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.alc-ley .r{background:var(--brand)}.alc-ley .p{background:#cfe3d2}
+.alc-grid{display:grid;gap:8px}
+.alc-fila{display:grid;grid-template-columns:minmax(150px,240px) 1fr minmax(230px,auto);gap:12px;align-items:center;font-size:.88rem}
+@media (max-width:800px){.alc-fila{grid-template-columns:1fr;gap:4px}.alc-num{text-align:left!important}}
+.alc-fila.tot{font-weight:600;border-bottom:1px dashed var(--line);padding-bottom:8px;margin-bottom:2px}
+.alc-bar{height:12px;border-radius:6px;background:#cfe3d2;overflow:hidden}
+.alc-bar i{display:block;height:100%;background:var(--brand)}
+.alc-num{color:var(--muted);text-align:right}
+.alc-num b{color:var(--ink)}
+.alc-nota{margin:10px 0 0;font-size:.78rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -133,7 +148,7 @@ text.lbl.show{opacity:1}
 </div></header>
 <section class="hero"><div class="in">
   <div>
-    <h1>Sistema General de Regalías </h1>
+    <h1>En Antioquia están pasando cosas <span>muy buenas.</span></h1>
     <span class="tipo">Seguimiento de proyectos</span>
     <p class="sub" id="corte">Cargando datos…</p>
   </div>
@@ -156,6 +171,7 @@ text.lbl.show{opacity:1}
 
   <nav class="migas" id="migas" aria-label="Ubicación"></nav>
   <div class="stats" id="stats"></div>
+  <section class="alc" id="alcanceBox" aria-label="Alcance de los proyectos"></section>
 
   <div class="layout">
     <section class="panel">
@@ -255,12 +271,31 @@ function claseIgpr(v) {
 }
 const IGPR_TXT = { r: 'IGPR < 60', y: 'No aplica', g: 'IGPR ≥ 60 o cerrado', n: 'Sin dato' };
 
+// Alcance: "4 KM PLACA HUELLA", "2 PUENTES", "4 PAP", "1 PUENTE Y 1.5 KM VÍA"…
+// Devuelve [{cat, unit:'km'|'und', q}]. Sin cantidad → [] (salvo «PUENTE …», que se toma como 1).
+function parseAlcance(txt, ent) {
+  const t = String(txt ?? '').replace(/\s+/g, ' ').trim().toUpperCase();
+  if (!t) return [];
+  const partes = t.split(/\s+Y\s+/), multi = partes.length > 1, items = [];
+  partes.forEach(parte => {
+    const m = parte.match(/^(\d+(?:[.,]\d+)?)\s*(KM\b)?\s*(.*)$/);
+    if (!m) return;
+    const q = parseFloat(m[1].replace(',', '.'));
+    const esKm = !!m[2] || /[.,]/.test(m[1]);   // con decimales y sin unidad (p. ej. «1,07 PAV URBANA») se toma como km
+    const resto = m[3].replace(/^(DE|DEL)\s+/, '').trim();
+    const cat = (multi ? resto.split(' ')[0].replace(/S$/, '') : ent) || ent || 'OTROS';
+    items.push({ cat, unit: esKm ? 'km' : 'und', q });
+  });
+  if (!items.length && /^PUENTE/.test(t)) items.push({ cat: 'PUENTE', unit: 'und', q: 1 });
+  return items;
+}
+
 function construir(aoa) {
   const hi = aoa.findIndex(r => r && r.map(norm).includes('ano') && r.map(norm).includes('municipio'));
   if (hi < 0) throw new Error('No encontré la fila de encabezados (Año, Municipio…).');
   const h = aoa[hi].map(norm), etiquetas = aoa[hi - 1] || [];
   const c = { anio: h.indexOf('ano'), mun: h.indexOf('municipio'), bpin: h.indexOf('bpin'), nom: h.indexOf('nombre'),
-    ent: h.indexOf('entregable'), des: h.findIndex(x => x.startsWith('designacion')), igpr: h.findIndex(x => x.startsWith('igpr')),
+    ent: h.indexOf('entregable'), alc: h.indexOf('alcance'), des: h.findIndex(x => x.startsWith('designacion')), igpr: h.findIndex(x => x.startsWith('igpr')),
     val: h.findIndex(x => x.startsWith('valor')), apo: h.findIndex(x => x.startsWith('aporte')), est: h.indexOf('estado'),
     rep: h.findIndex(x => x.includes('municipio') && x.includes('fisica')) };
   const cortes = []; let previo = null;
@@ -285,12 +320,19 @@ function construir(aoa) {
       munNombre: k ? MUNI[k].nombre : mun,
       bpin: f[c.bpin], nombre: String(f[c.nom] ?? '').trim(),
       entregable: c.ent >= 0 ? String(f[c.ent] ?? '').replace(/\s+/g,' ').trim().toUpperCase() : '',
+      alcance: c.alc >= 0 ? String(f[c.alc] ?? '').replace(/\s+/g,' ').trim() : '',
+      items: c.alc >= 0 ? parseAlcance(f[c.alc], c.ent >= 0 ? String(f[c.ent] ?? '').replace(/\s+/g,' ').trim().toUpperCase() : '') : [],
       ejecutor: c.des >= 0 ? (norm(f[c.des]).includes('ejecutora') ? 'ejecutora' : norm(f[c.des]).includes('aportante') ? 'aportante' : '') : '',
       igprRaw: c.igpr >= 0 ? f[c.igpr] : null, igpr: c.igpr >= 0 ? avanceIgpr(f[c.igpr]) : null, igprClase: c.igpr >= 0 ? claseIgpr(f[c.igpr]) : 'n',
       valor: num(f[c.val]) || 0, aporte: num(f[c.apo]) || 0, estado: String(f[c.est] ?? '').trim().toUpperCase(),
       fis: cortes.map(k2 => avance(f[k2.col])), fin: cortes.map(k2 => k2.fin >= 0 ? avance(f[k2.fin]) : null),
       rep: c.rep >= 0 ? num(f[c.rep]) : null });
   }
+  // Proyectos con el mismo BPIN (un proyecto que beneficia a varios municipios)
+  const porBpin = new Map();
+  proyectos.forEach(p => { if (p.bpin != null && p.bpin !== '') { const k = String(p.bpin); (porBpin.get(k) || porBpin.set(k, []).get(k)).push(p); } });
+  proyectos.forEach(p => { const g = (p.bpin != null && p.bpin !== '') ? porBpin.get(String(p.bpin)) : null;
+    p.comparte = g ? g.filter(q => q !== p).map(q => q.depto ? 'Departamento' : q.munNombre) : []; });
   return { cortes, proyectos };
 }
 
@@ -376,7 +418,7 @@ function tarjetas(lista) {
         <div class="pills"><span class="pill ${claseEstado(p.estado)}">${esc(p.estado || '—')}</span>
           </div>
       </div>
-      <div class="proy-meta">${p.entregable ? `<span class="tag">${esc(p.entregable)}</span>` : ''}${p.ejecutor ? `<span class="tag">${p.ejecutor === 'ejecutora' ? 'Entidad Ejecutora' : 'Entidad Aportante Recursos'}</span>` : ''}<span class="pill ig${p.igprClase}">IGPR: ${p.igprRaw == null || p.igprRaw === '' ? 'sin dato' : esc(typeof p.igprRaw === 'number' ? fmtP(p.igprRaw).replace('%','') : String(p.igprRaw).trim())}</span></div>
+      <div class="proy-meta">${p.alcance ? `<span class="tag">Alcance: ${esc(p.alcance)}</span>` : ''}${p.comparte && p.comparte.length ? `<span class="tag">Mismo BPIN en: ${esc(p.comparte.join(', '))}</span>` : ''}${p.entregable ? `<span class="tag">${esc(p.entregable)}</span>` : ''}${p.ejecutor ? `<span class="tag">${p.ejecutor === 'ejecutora' ? 'Entidad Ejecutora' : 'Entidad Aportante Recursos'}</span>` : ''}<span class="pill ig${p.igprClase}">IGPR: ${p.igprRaw == null || p.igprRaw === '' ? 'sin dato' : esc(typeof p.igprRaw === 'number' ? fmtP(p.igprRaw).replace('%','') : String(p.igprRaw).trim())}</span></div>
       <div class="proy-cifras"><span>Valor: <b>${fmtFull(p.valor)}</b></span><span>Aporte Gob.: <b>${fmtFull(p.aporte)}</b></span></div>
       <div class="proy-mini"><canvas id="mini${i}"></canvas></div>
       <div class="proy-pie">Avance físico: <b>${fmtP(uf)}</b> · Financiero: <b>${fmtP(un)}</b>${p.rep != null ? ` · Reporta el municipio: <b>${fmtP(p.rep)}</b>` : ''}</div>
@@ -453,6 +495,60 @@ function pintarPanel() {
 }
 
 // ── Mapa ─────────────────────────────────────────────────────────
+// ── Alcance (km y unidades) ──────────────────────────────────────
+// Realizado: TERMINADO, PARA CIERRE, CERRADO · Por ejecutar: cualquier otro estado.
+// Filas con el mismo BPIN dentro del alcance actual se cuentan una sola vez (la mayor cantidad por entregable);
+// si solo está uno de sus municipios en pantalla, se ve el alcance de esa fila.
+const esRealizado = e => ['terminado', 'para cierre', 'cerrado'].includes(norm(e));
+const r3 = v => Math.round(v * 1000) / 1000;
+const fmtQ = n => new Intl.NumberFormat('es-CO', { maximumFractionDigits: 3 }).format(trunc(r3(n), 3));
+const tituloCat = s => { const t = String(s).toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };
+
+function resumenAlcance(lista) {
+  const grupos = new Map();
+  lista.forEach((p, i) => { const k = (p.bpin != null && p.bpin !== '') ? 'b' + p.bpin : 'f' + i; (grupos.get(k) || grupos.set(k, []).get(k)).push(p); });
+  const tot = new Map(); let compartidos = 0, sinCuant = 0;
+  grupos.forEach(filas => {
+    if (filas.length > 1) compartidos++;
+    const mayor = new Map(); let hay = false;
+    filas.forEach(p => p.items.forEach(it => {
+      hay = true; const real = esRealizado(p.estado), k = it.cat + '|' + it.unit + '|' + (real ? 1 : 0);
+      const m = mayor.get(k); if (!m || it.q > m.q) mayor.set(k, { ...it, real });
+    }));
+    if (!hay) sinCuant++;
+    mayor.forEach(m => { const k = m.cat + '|' + m.unit; let t = tot.get(k);
+      if (!t) tot.set(k, t = { cat: m.cat, unit: m.unit, real: 0, por: 0 }); t[m.real ? 'real' : 'por'] += m.q; });
+  });
+  const filas = [...tot.values()].map(t => ({ ...t, real: r3(t.real), por: r3(t.por) }))
+    .sort((a, b) => (a.unit === b.unit ? 0 : a.unit === 'km' ? -1 : 1) || (b.real + b.por) - (a.real + a.por));
+  const km = filas.filter(f => f.unit === 'km');
+  return { filas, compartidos, sinCuant, km: { real: r3(km.reduce((s, f) => s + f.real, 0)), por: r3(km.reduce((s, f) => s + f.por, 0)) } };
+}
+function lineaKm(lista) {
+  const r = resumenAlcance(lista);
+  return (r.km.real + r.km.por) > 0 ? `<br>Km: ${fmtQ(r.km.real)} realizados · ${fmtQ(r.km.por)} por ejecutar` : '';
+}
+function pintarAlcance() {
+  const r = resumenAlcance(alcance());
+  const fila = (nom, unidad, real, por, tot) => {
+    const t = real + por, pct = t ? Math.round(real / t * 1000) / 10 : 0;
+    return `<div class="alc-fila${tot ? ' tot' : ''}"><div>${esc(nom)}</div><div class="alc-bar" title="${pct}% realizado"><i style="width:${pct}%"></i></div>
+      <div class="alc-num"><b>${fmtQ(real)}</b> ${unidad} realizado · <b>${fmtQ(por)}</b> ${unidad} por ejecutar</div></div>`;
+  };
+  const hayKm = r.filas.filter(f => f.unit === 'km').length;
+  const filas = [];
+  if (hayKm > 1) filas.push(fila('Total kilómetros', 'km', r.km.real, r.km.por, true));
+  r.filas.forEach(f => filas.push(fila(f.unit === 'km' ? tituloCat(f.cat) : tituloCat(f.cat), f.unit === 'km' ? 'km' : 'und.', f.real, f.por, false)));
+  const notas = [];
+  if (r.compartidos) notas.push(`${plural(r.compartidos, 'proyecto que beneficia', 'proyectos que benefician')} a varios municipios (mismo BPIN) se cuenta${r.compartidos === 1 ? '' : 'n'} una sola vez; al elegir uno de sus municipios se ve el alcance de ese municipio.`);
+  if (r.sinCuant) notas.push(`${plural(r.sinCuant, 'proyecto sin alcance', 'proyectos sin alcance')} medible en km o unidades (p. ej. encuestas, esquemas de ordenamiento, redes) no suma${r.sinCuant === 1 ? '' : 'n'}.`);
+  $('alcanceBox').innerHTML = `<h2>Alcance de los proyectos</h2>
+    <p class="alc-sub">${esc(nombreAlcance())} · kilómetros y unidades por entregable</p>
+    <div class="alc-ley"><span><i class="r"></i>Alcance realizado (Terminado, Para cierre, Cerrado)</span><span><i class="p"></i>Alcance por ejecutar (otros estados)</span></div>
+    ${filas.length ? `<div class="alc-grid">${filas.join('')}</div>` : '<p class="msg" style="padding:12px">Sin alcance cuantificable con los filtros actuales.</p>'}
+    ${notas.map(n => `<p class="alc-nota">${n}</p>`).join('')}`;
+}
+
 function transformar(bounds) {
   const g = $('zoomG'), vb = $('mapaSvg').viewBox.baseVal;
   let k = 1, tx = 0, ty = 0;
@@ -498,7 +594,7 @@ function pintarMapa() {
 function tooltipHtml(nombre, s) {
   const c = { r: 0, y: 0, g: 0, n: 0 }; s.lista.forEach(p => c[p.igprClase]++);
   const ig = igprOn ? `<br>IGPR: ${c.r} rojo · ${c.y} amarillo · ${c.g} verde${c.n ? ' · ' + c.n + ' sin dato' : ''}` : '';
-  return `<b>${esc(nombre)}</b>${plural(s.n, 'proyecto', 'proyectos')}<br>Valor: ${fmtM(s.valor)}<br>Aporte Gobernación: ${fmtM(s.aporte)}${ig}`;
+  return `<b>${esc(nombre)}</b>${plural(s.n, 'proyecto', 'proyectos')}<br>Valor: ${fmtM(s.valor)}<br>Aporte Gobernación: ${fmtM(s.aporte)}${lineaKm(s.lista)}${ig}`;
 }
 
 function bordesSubregion(features, projection, subDe) {
@@ -673,6 +769,7 @@ function pintar() {
   pintarChipDepto();
   pintarMigas();
   pintarStats();
+  pintarAlcance();
   pintarPanel();
   pintarMapa();
 }
