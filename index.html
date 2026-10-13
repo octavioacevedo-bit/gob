@@ -505,14 +505,14 @@ function resumenAlcance(lista) {
 }
 function lineaKm(lista) {
   const r = resumenAlcance(lista);
-  return (r.km.real + r.km.por) > 0 ? `<br>Km: ${fmtQ(r.km.real)} realizados · ${fmtQ(r.km.por)} por ejecutar` : '';
+  return (r.km.real + r.km.por) > 0 ? `<br>Km: ${fmtQ(r.km.real)} de ${fmtQ(r.km.real + r.km.por)} realizados` : '';
 }
 function pintarAlcance() {
   const r = resumenAlcance(alcance());
   const fila = (nom, unidad, real, por, tot) => {
     const t = real + por, pct = t ? Math.round(real / t * 1000) / 10 : 0;
     return `<div class="alc-fila${tot ? ' tot' : ''}"><div>${esc(nom)}</div><div class="alc-bar" title="${pct}% realizado"><i style="width:${pct}%"></i></div>
-      <div class="alc-num"><b>${fmtQ(real)}</b> ${unidad} realizado · <b>${fmtQ(por)}</b> ${unidad} por ejecutar</div></div>`;
+      <div class="alc-num"><b>${fmtQ(real)}</b> ${unidad} de <b>${fmtQ(t)}</b> · ${fmtQ(pct)}%</div></div>`;
   };
   const hayKm = r.filas.filter(f => f.unit === 'km').length;
   const filas = [];
@@ -520,7 +520,7 @@ function pintarAlcance() {
   r.filas.forEach(f => filas.push(fila(tituloCat(f.cat), f.unit === 'km' ? 'km' : 'und.', f.real, f.por, false)));
   $('alcanceBox').innerHTML = `<h2>Alcance de los proyectos</h2>
     <p class="alc-sub">${esc(nombreAlcance())} · kilómetros y unidades por entregable</p>
-    <div class="alc-ley"><span><i class="r"></i>Alcance realizado (Terminado, Para cierre, Cerrado)</span><span><i class="p"></i>Alcance por ejecutar (otros estados)</span></div>
+    <div class="alc-ley"><span><i class="r"></i>Realizado (Terminado, Para cierre, Cerrado)</span><span><i class="p"></i>Por ejecutar (otros estados)</span></div>
     ${filas.length ? `<div class="alc-grid">${filas.join('')}</div>` : '<p class="msg" style="padding:12px">Sin alcance cuantificable con los filtros actuales.</p>'}`;
 }
 
