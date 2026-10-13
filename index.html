@@ -46,8 +46,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .migas button{border:0;background:none;padding:2px 4px;font:inherit;color:var(--accent-dark);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .migas b{color:var(--ink)}
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-@media (max-width:700px){.stats{grid-template-columns:1fr}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.stats{grid-template-columns:1fr}}
 .stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:12px;padding:14px 16px}
 .stat b{display:block;font-size:1.4rem;font-weight:600;color:var(--accent-dark)}
 .stat span{color:var(--muted);font-size:.83rem}
@@ -124,7 +125,7 @@ text.lbl.show{opacity:1}
 .proy-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .tag{font-size:.74rem;padding:1px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--muted)}
 .nota{font-size:.78rem;color:var(--muted);margin:-4px 0 12px}
-.alc{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.alc{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:12px;padding:14px 16px;margin-top:18px}
 .alc h2{font-size:1.05rem;margin:0;color:var(--accent-dark)}
 .alc-sub{color:var(--muted);font-size:.83rem;margin:2px 0 8px}
 .alc-ley{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:0 0 10px}
@@ -171,7 +172,6 @@ text.lbl.show{opacity:1}
 
   <nav class="migas" id="migas" aria-label="Ubicación"></nav>
   <div class="stats" id="stats"></div>
-  <section class="alc" id="alcanceBox" aria-label="Alcance de los proyectos"></section>
 
   <div class="layout">
     <section class="panel">
@@ -185,6 +185,8 @@ text.lbl.show{opacity:1}
     </section>
     <section class="panel" id="panelDerecho"></section>
   </div>
+
+  <section class="alc" id="alcanceBox" aria-label="Alcance de los proyectos"></section>
 </main>
 <footer class="pie"><div class="in"><span><b>Gobernación de Antioquia</b> · República de Colombia</span><span>#EnAntioquiaEstánPasandoCosasMuyBuenas</span></div></footer>
 
@@ -377,10 +379,12 @@ function pintarMigas() {
 
 function pintarStats() {
   const a = agg(alcance());
+  const rk = resumenAlcance(alcance()), kmTotal = rk.km.real + rk.km.por;
   $('stats').innerHTML = `
     <div class="stat"><b>${a.n}</b><span>proyectos · ${esc(nombreAlcance())}</span></div>
     <div class="stat"><b>${fmtV(a.valor)}</b><span>valor total</span></div>
-    <div class="stat"><b>${fmtV(a.aporte)}</b><span>aporte Gobernación SGR</span></div>`;
+    <div class="stat"><b>${fmtV(a.aporte)}</b><span>aporte Gobernación SGR</span></div>
+    <div class="stat"><b>${fmtQ(kmTotal)} km</b><span>placa huella + pavimento</span></div>`;
 }
 
 function graficoEstados(lista) {
